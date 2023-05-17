@@ -7,6 +7,10 @@ inputs:
     description: 'Path to the file to check for version'
     required: true
 
+  github-token:
+    description: 'Your GitHub Token'
+    required: true
+
 runs:
   using: 'composite'
   steps:
@@ -37,7 +41,7 @@ runs:
           git tag -a "v$CURRENT_VERSION" $PREVIOUS_COMMIT -m "Version $CURRENT_VERSION"
         
           # Set the remote URL to include the token for authentication
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${{ inputs.github-token }}@github.com/${{ github.repository }}.git
 
           # Push the tag to the remote
           git push origin "v$CURRENT_VERSION"
