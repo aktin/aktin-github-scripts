@@ -1,0 +1,75 @@
+name: Python QL
+
+on: [push, pull_request]
+
+env:
+  SRC_PATH: ${{ github.workspace }}/src
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+        matrix:
+          os: [ubuntu-latest]
+          python-version: ['3.x']
+          pylint-ini-path: ['.github/workflows/pylint.ini']
+          bandit-toml-path: ['.github/workflows/bandit.toml']
+          integration-test-path: ['test/integration/integration-test.sh']
+          dependencies: ['']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pylint black bandit ${{ matrix.dependencies }}
+
+      - name: Code Formatting
+        run: |
+          black $SRC_PATH
+
+      - name: Linting and Code Quality
+        run: |
+          if [[ -f "${{ matrix.pylint-ini-path }}" ]]; then
+            pylint --fail-under=9.0 --rcfile=${{ matrix.pylint-ini-path }} $SRC_PATH
+          else
+            pylint --fail-under=9.0 $SRC_PATH
+          fi
+
+      - name: Security Scan
+        run: |
+          if [[ -f "${{ matrix.bandit-toml-path }}" ]]; then
+            bandit -c ${{ matrix.bandit-toml-path }} -r $SRC_PATH -ll
+          else
+            bandit -r $SRC_PATH -ll
+          fi
+
+      - name: Integration Testing
+        run: |
+          if [[ -f "${{ matrix.integration-test-path }}" ]]; then
+            bash ${{ matrix.integration-test-path }}
+          else
+            echo "No integration test provided."
+          fi
+
+      - name: Set retention policy for artifacts
+        run: |
+          echo "RETENTION_DAYS=30" >> $GITHUB_ENV
+
+      - name: Delete logs and artifacts
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 0
+          
