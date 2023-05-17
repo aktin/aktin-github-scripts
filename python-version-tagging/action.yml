@@ -8,7 +8,7 @@ inputs:
     required: true
 
   github-token:
-    description: 'Your GitHub Token'
+    description: 'Token to use to push the new tag'
     required: true
 
 runs:
@@ -35,7 +35,7 @@ runs:
         LATEST_TAG=${LATEST_TAG:1}  
 
         # Check if the version has changed
-        if [ "$CURRENT_VERSION" != "$LATEST_TAG" ]; then
+        if [ "$CURRENT_VERSION" != "$(echo "$LATEST_TAG + 0.1" | bc)" ]; then
           # Find the previous commit
           PREVIOUS_COMMIT=$(git rev-parse HEAD~1)
 
