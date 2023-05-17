@@ -10,7 +10,7 @@ This repository contains a collection of custom GitHub Actions to automate vario
 To use any of the actions in your GitHub workflows, you can reference this repository and the specific action within your workflow YAML file.
 
 ```yaml
-# .github/workflows/main.yml
+# .github/workflows/my-workflow.yml
 name: My Workflow
 on: [push]
 
@@ -21,11 +21,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       
-      - name: Run aktin's action1
-        uses: aktin/aktin-github-actions/.template/workflows/action1.yml
+      - name: Run action1
+        uses: aktin/aktin-github-actions/action1@main
         with:
-          parameter1: value1
-          parameter2: value2
+          parameter1: 'value1'
+          parameter2: 'value2 value3 value4'
       # Add more steps...
 ```      
 
