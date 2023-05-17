@@ -1,0 +1,77 @@
+name: 'Python QL'
+
+description: 'Python Quality Checks'
+
+inputs:
+  src-path:
+    description: 'Path to src/ directory'
+    required: true
+
+  python-version:
+    description: 'Python version'
+    required: true
+    default: '3.x'
+
+  pylint-ini-path:
+    description: 'Path to the pylint ini file'
+    required: false
+
+  bandit-toml-path:
+    description: 'Path to the bandit toml file'
+    required: false
+
+  integration-test-path:
+    description: 'Path to the integration test script'
+    required: false
+
+  dependencies:
+    description: 'Additional Python dependencies to install'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pylint black bandit ${{ inputs.dependencies }}
+      shell: bash
+
+    - name: Code Formatting
+      run: black ${{ inputs.src-path }}
+      shell: bash
+
+    - name: Linting and Code Quality
+      run: |
+        if [[ -f "${{ inputs.pylint-ini-path }}" ]]; then
+          pylint --fail-under=9.0 --rcfile=${{ inputs.pylint-ini-path }} ${{ inputs.src-path }}
+        else
+          pylint --fail-under=9.0 ${{ inputs.src-path }}
+        fi
+      shell: bash
+
+    - name: Security Scan
+      run: |
+        if [[ -f "${{ inputs.bandit-toml-path }}" ]]; then
+          bandit -c ${{ inputs.bandit-toml-path }} -r ${{ inputs.src-path }} -ll
+        else
+          bandit -r ${{ inputs.src-path }} -ll
+        fi
+      shell: bash
+
+    - name: Integration Testing
+      run: |
+        if [[ -f "${{ inputs.integration-test-path }}" ]]; then
+          bash ${{ inputs.integration-test-path }}
+        else
+          echo "No integration test provided."
+        fi
+      shell: bash
