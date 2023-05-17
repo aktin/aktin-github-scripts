@@ -18,8 +18,10 @@ runs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-
     - run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+
         # Parse current version from the Python script
         CURRENT_VERSION=$(grep -oP "@VERSION=\K(\d.\d)" ${{ inputs.file-path }})
 
