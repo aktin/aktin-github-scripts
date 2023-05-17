@@ -1,0 +1,45 @@
+name: 'Check Version and Tag'
+
+description: 'Checks Python script for version change and tags previous commit if version changed'
+
+inputs:
+  file-path:
+    description: 'Path to the file to check for version'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - run: |
+        # Parse current version from the Python script
+        CURRENT_VERSION=$(grep -oP "@VERSION=\K(\d.\d)" ${{ inputs.file-path }})
+
+        # Fetch tags from remote to ensure we are up to date
+        git fetch --tags
+
+        # Get the latest tag
+        LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+        
+        # Remove 'v' from the tag
+        LATEST_TAG=${LATEST_TAG:1}  
+
+        # Check if the version has changed
+        if [ "$CURRENT_VERSION" != "$LATEST_TAG" ]; then
+          # Find the previous commit
+          PREVIOUS_COMMIT=$(git rev-parse HEAD~1)
+
+          # Tag the previous commit with the current version
+          git tag -a "v$CURRENT_VERSION" $PREVIOUS_COMMIT -m "Version $CURRENT_VERSION"
+        
+          # Set the remote URL to include the token for authentication
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+          # Push the tag to the remote
+          git push origin "v$CURRENT_VERSION"
+        fi
+      shell: bash
