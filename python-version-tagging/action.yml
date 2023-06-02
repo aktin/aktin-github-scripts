@@ -23,29 +23,20 @@ runs:
         git config user.email "actions@github.com"
 
         # Parse current version from the Python script
-        CURRENT_VERSION=$(grep -oP "@VERSION=\K(\d.\d)" ${{ inputs.file-path }})
+        CURRENT_VERSION=$(grep -oP '(?<=@VERSION=)[^"]*' ${{ inputs.file-path }})
 
         # Fetch tags from remote to ensure we are up to date
         git fetch --tags
-
-        # Get the latest tag
-        LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
         
-        # Remove 'v' from the tag
-        LATEST_TAG=${LATEST_TAG:1}  
-
-        # Check if the version has changed
-        if [ "$CURRENT_VERSION" != "$(echo "$LATEST_TAG + 0.1" | bc)" ]; then
-          # Find the previous commit
-          PREVIOUS_COMMIT=$(git rev-parse HEAD~1)
-
-          # Tag the previous commit with the current version
-          git tag -a "v$CURRENT_VERSION" $PREVIOUS_COMMIT -m "Version $CURRENT_VERSION"
-        
-          # Set the remote URL to include the token for authentication
-          git remote set-url origin https://x-access-token:${{ inputs.github-token }}@github.com/${{ github.repository }}.git
-
-          # Push the tag to the remote
-          git push origin "v$CURRENT_VERSION"
+        # Check if the tag already exists and matches the current version
+        if git rev-parse --quiet --verify "refs/tags/v$CURRENT_VERSION" >/dev/null; then
+          echo "Moving tag to the latest commit..."
+          git tag -d "v$CURRENT_VERSION"
+          git push origin ":refs/tags/v$CURRENT_VERSION" $GITHUB_TOKEN --follow-tags
         fi
+        
+        # Create a new tag at the latest commit
+        echo "Tagging the latest commit..."
+        git tag -a "v$CURRENT_VERSION" -m "Version $CURRENT_VERSION"
+        git push origin "v$CURRENT_VERSION" --tags $GITHUB_TOKEN --follow-tags
       shell: bash
