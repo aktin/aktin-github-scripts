@@ -28,6 +28,11 @@ inputs:
     description: 'Additional Python dependencies to install'
     required: false
 
+  run-formatting:
+    description: 'Run black code formatting'
+    required: false
+    default: 'true'
+
 runs:
   using: 'composite'
   steps:
@@ -39,42 +44,52 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Cache Python packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f "requirements.txt" ]; then
             pip install -r requirements.txt
         fi
-        pip install pytest pylint black bandit ${{ inputs.dependencies }}
+        pip install pytest pylint==2.11.1 black==21.9b0 bandit==1.7.0 ${{ inputs.dependencies }}
       shell: bash
 
     - name: Code Formatting
+      if: inputs.run-formatting == 'true'
       run: black ${{ inputs.src-path }}
       shell: bash
 
     - name: Linting and Code Quality
       run: |
+        pylint_options="--fail-under=9.0"
         if [[ -f "${{ inputs.pylint-ini-path }}" ]]; then
-          pylint --fail-under=9.0 --rcfile=${{ inputs.pylint-ini-path }} ${{ inputs.src-path }}
-        else
-          pylint --fail-under=9.0 ${{ inputs.src-path }}
+          pylint_options="$pylint_options --rcfile=${{ inputs.pylint-ini-path }}"
         fi
+        pylint $pylint_options ${{ inputs.src-path }}
       shell: bash
 
     - name: Security Scan
       run: |
+        bandit_options="-ll"
         if [[ -f "${{ inputs.bandit-toml-path }}" ]]; then
-          bandit -c ${{ inputs.bandit-toml-path }} -r ${{ inputs.src-path }} -ll
-        else
-          bandit -r ${{ inputs.src-path }} -ll
+          bandit_options="$bandit_options -c ${{ inputs.bandit-toml-path }}"
         fi
+        bandit $bandit_options -r ${{ inputs.src-path }}
       shell: bash
 
     - name: Integration Testing
+      if: inputs.integration-test-path
       run: |
         if [[ -f "${{ inputs.integration-test-path }}" ]]; then
           bash ${{ inputs.integration-test-path }}
         else
-          echo "No integration test provided."
+          echo "No integration test script found at ${{ inputs.integration-test-path }}"
         fi
       shell: bash
