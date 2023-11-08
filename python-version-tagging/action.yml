@@ -18,25 +18,31 @@ runs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - run: |
+
+    - name: Get the previous version from the script
+      run: |
+        PREV_VERSION=$(git show HEAD~1:${{ inputs.file-path }} | grep -oP '(?<=@VERSION=)[0-9.]+')
+        echo "Previous version: $PREV_VERSION"
+        echo "::set-output name=PREV_VERSION::$PREV_VERSION"
+      shell: bash
+
+    - name: Get the current version from the script
+      run: |
+        CURRENT_VERSION=$(grep -oP '(?<=@VERSION=)[0-9.]+ ${{ inputs.file-path }}')
+        echo "Current version: $CURRENT_VERSION"
+        echo "::set-output name=CURRENT_VERSION::$CURRENT_VERSION"
+      shell: bash
+
+    - name: Tag previous commit if version changed
+      if: ${{ steps.get-prev-version.outputs.PREV_VERSION != steps.get-current-version.outputs.CURRENT_VERSION }}
+      run: |
+        PREV_COMMIT=$(git rev-parse HEAD~1)
+        echo "Previous commit: $PREV_COMMIT"
+        
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
-
-        # Parse current version from the Python script
-        CURRENT_VERSION=$(grep -oP '(?<=@VERSION=)[^"]*' ${{ inputs.file-path }})
-
-        # Fetch tags from remote to ensure we are up to date
-        git fetch --tags
-        
-        # Check if the tag already exists and matches the current version
-        if git rev-parse --quiet --verify "refs/tags/v$CURRENT_VERSION" >/dev/null; then
-          echo "Moving tag to the latest commit..."
-          git tag -d "v$CURRENT_VERSION"
-          git push origin ":refs/tags/v$CURRENT_VERSION" $GITHUB_TOKEN --follow-tags
-        fi
-        
-        # Create a new tag at the latest commit
-        echo "Tagging the latest commit..."
-        git tag -a "v$CURRENT_VERSION" -m "Version $CURRENT_VERSION"
-        git push origin "v$CURRENT_VERSION" --tags $GITHUB_TOKEN --follow-tags
+        git tag -a "v${{ steps.get-prev-version.outputs.PREV_VERSION }}" -m "Version ${{ steps.get-prev-version.outputs.PREV_VERSION }}" $PREV_COMMIT
+        git push origin "v${{ steps.get-prev-version.outputs.PREV_VERSION }}"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       shell: bash
