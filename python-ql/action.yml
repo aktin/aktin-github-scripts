@@ -58,7 +58,7 @@ runs:
         if [ -f "requirements.txt" ]; then
             pip install -r requirements.txt
         fi
-        pip install pytest pylint==2.11.1 black==21.9b0 bandit==1.7.0 ${{ inputs.dependencies }}
+        pip install pytest pylint black bandit ${{ inputs.dependencies }}
       shell: bash
 
     - name: Code Formatting
