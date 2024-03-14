@@ -4,7 +4,6 @@ This repository contains a collection of custom GitHub Actions to automate vario
 ### Actions:
 
 - python-ql : Performs linting, code formatting, security scanning, and custom integration testing for Python projects.
-- python-version-tagging : Checks a specified Python script for a version change in its metadata, and if detected, tags the previous commit with the last version and pushes this new tag to the repository
 
 ### Usage:
 
