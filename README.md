@@ -1,11 +1,16 @@
-## aktin-github-actions
-This repository contains a collection of custom GitHub Actions to automate various tasks and workflows. These actions can be used in your GitHub workflows to streamline your development and deployment processes.
+## aktin-github-scripts
+This repository contains a collection of custom GitHub Actions and Github Workflows to automate various tasks. These scripts can be used in your GitHub repository to streamline your development and deployment processes.
+
+### Folder Structure:
+
+- **workflows/**: Contains reusable GitHub workflow files.
+- **actions/**: Contains custom actions, each in its own subfolder.
 
 ### Actions:
 
-- python-ql : Performs linting, code formatting, security scanning, and custom integration testing for Python projects.
+- **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects.
 
-### Usage:
+#### Usage:
 
 To use any of the actions in your GitHub workflows, you can reference this repository and the specific action within your workflow YAML file.
 
@@ -20,14 +25,39 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      
+
       - name: Run action1
         uses: aktin/aktin-github-actions/action1@main
         with:
           parameter1: 'value1'
           parameter2: 'value2 value3 value4'
-      # Add more steps...
-```      
+```
+
+### Workflows:
+
+-
+
+#### Usage:
+
+To use a reusable GitHub workflow from this repository, reference the workflow file inside `.github/workflows/`.
+
+```yaml
+# .github/workflows/my-workflow.yml
+name: My Workflow
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  call-reusable-workflow:
+    uses: aktin/aktin-github-actions/workflows/workflow1.yml@main
+    with:
+      input1: 'value1'
+      input2: 'value2'
+    secrets:
+      my_secret: ${{ secrets.MY_SECRET }}
+```
 
 ### License:
 
