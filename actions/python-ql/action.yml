@@ -55,21 +55,10 @@ runs:
       uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
-
-    - name: Get pip cache directory
-      run: echo "pip-cache-dir=$(python -m pip cache dir)" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Cache Python packages
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.pip-cache-dir }}
-        key: ${{ runner.os }}-pip-${{ github.run_id }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
@@ -88,7 +77,7 @@ runs:
     - name: Linting and Code Quality
       run: |
         pylint_options="--fail-under=${{ inputs.pylint-fail-under }}"
-        if [[ -n "${{ inputs.pylint-ini-path }}" && -f "${{ inputs.pylint-ini-path }}" ]]; then
+        if [[ -f "${{ inputs.pylint-ini-path }}" ]]; then
           pylint_options="$pylint_options --rcfile=${{ inputs.pylint-ini-path }}"
         fi
         pylint $pylint_options ${{ inputs.src-path }}
@@ -97,7 +86,7 @@ runs:
     - name: Security Scan
       run: |
         bandit_options="-ll --severity-level ${{ inputs.bandit-severity }} --confidence-level ${{ inputs.bandit-confidence }}"
-        if [[ -n "${{ inputs.bandit-toml-path }}" && -f "${{ inputs.bandit-toml-path }}" ]]; then
+        if [[ -f "${{ inputs.bandit-toml-path }}" ]]; then
           bandit_options="$bandit_options -c ${{ inputs.bandit-toml-path }}"
         fi
         bandit $bandit_options -r ${{ inputs.src-path }}
@@ -107,7 +96,7 @@ runs:
       if: inputs.integration-test-path
       run: |
         set -e
-        if [[ -n "${{ inputs.integration-test-path }}" && -f "${{ inputs.integration-test-path }}" ]]; then
+        if [[ -f "${{ inputs.integration-test-path }}" ]]; then
           bash ${{ inputs.integration-test-path }}
         else
           echo "No integration test script found at ${{ inputs.integration-test-path }}"
