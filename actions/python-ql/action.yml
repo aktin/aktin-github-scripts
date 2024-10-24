@@ -16,9 +16,24 @@ inputs:
     description: 'Path to the pylint ini file'
     required: false
 
+  pylint-fail-under:
+    description: 'Minimum score for pylint to pass'
+    required: false
+    default: '9.0'
+
   bandit-toml-path:
     description: 'Path to the bandit toml file'
     required: false
+
+  bandit-severity:
+    description: 'Bandit severity level'
+    required: false
+    default: 'low'
+
+  bandit-confidence:
+    description: 'Bandit confidence level'
+    required: false
+    default: 'low'
 
   integration-test-path:
     description: 'Path to the integration test script'
@@ -37,20 +52,13 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
-
-    - name: Cache Python packages
-      uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
@@ -58,7 +66,7 @@ runs:
         if [ -f "requirements.txt" ]; then
             pip install -r requirements.txt
         fi
-        pip install pytest pylint black bandit ${{ inputs.dependencies }}
+        pip install pytest pylint black bandit "${{ inputs.dependencies }}"
       shell: bash
 
     - name: Code Formatting
@@ -68,7 +76,7 @@ runs:
 
     - name: Linting and Code Quality
       run: |
-        pylint_options="--fail-under=9.0"
+        pylint_options="--fail-under=${{ inputs.pylint-fail-under }}"
         if [[ -f "${{ inputs.pylint-ini-path }}" ]]; then
           pylint_options="$pylint_options --rcfile=${{ inputs.pylint-ini-path }}"
         fi
@@ -77,7 +85,7 @@ runs:
 
     - name: Security Scan
       run: |
-        bandit_options="-ll"
+        bandit_options="-ll --severity-level ${{ inputs.bandit-severity }} --confidence-level ${{ inputs.bandit-confidence }}"
         if [[ -f "${{ inputs.bandit-toml-path }}" ]]; then
           bandit_options="$bandit_options -c ${{ inputs.bandit-toml-path }}"
         fi
@@ -87,6 +95,7 @@ runs:
     - name: Integration Testing
       if: inputs.integration-test-path
       run: |
+        set -e
         if [[ -f "${{ inputs.integration-test-path }}" ]]; then
           bash ${{ inputs.integration-test-path }}
         else
