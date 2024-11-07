@@ -8,6 +8,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 
 ### Actions:
 
+- **get-newest-artifact**: Get artifacts from the last success run of a specified workflow
 - **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects.
 
 #### Usage:
@@ -27,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run action1
-        uses: aktin/aktin-github-actions/action1@main
+        uses: aktin/aktin-github-scripts/action1@main
         with:
           parameter1: 'value1'
           parameter2: 'value2 value3 value4'
@@ -35,7 +36,6 @@ jobs:
 
 ### Workflows:
 
--
 
 #### Usage:
 
@@ -51,7 +51,7 @@ on:
 
 jobs:
   call-reusable-workflow:
-    uses: aktin/aktin-github-actions/workflows/workflow1.yml@main
+    uses: aktin/aktin-github-scripts/workflows/workflow1.yml@main
     with:
       input1: 'value1'
       input2: 'value2'
