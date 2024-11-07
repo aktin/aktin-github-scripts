@@ -1,0 +1,82 @@
+name: AKTIN Build Debian
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: 'Artifact name'
+        default: 'debian-package'
+        type: string
+      name-base:
+        description: 'Prefix of the docker tags (either aktin-notaufnahme-i2b2 or aktin-notaufnahme-dwh)'
+        required: true
+        type: string
+      download-i2b2:
+        description: 'Download i2b2 update ZIP when building notaufnahme-i2b2 debian package'
+        default: false
+        type: boolean
+
+
+jobs:
+  debian-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/debian
+    steps:
+      - name: Prepare Version Variable - Deployment
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Prepare Version Variable - Testing
+        if: ! startsWith(github.ref, 'refs/tags/v')
+        run: echo "VERSION=0-$GITHUB_REF_NAME" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+
+      - name: Retrieve Cached Downloads
+        if: inputs.download-i2b2
+        uses: actions/cache@v4
+        with:
+          path: src/downloads/
+          key: downloads
+
+      - name: Retrieve i2b2 Update
+        if: steps.i2b2-cache.outputs.cache-hit != 'true' && inputs.download-i2b2
+        run:  # TODO
+
+      - name: Build Debian
+        run: build.sh $VERSION
+
+# Note: Because no tests are implemented yet, installation of the debian packages are not required yet
+#
+#      - name: Retrieve Cached GPG Public Key
+#        if: inputs.name-base == 'aktin-notaufnahme-dwh'
+#        uses: actions/cache@v4
+#        with:
+#          path: /etc/apt/trusted.gpg.d/aktin.gpg
+#          key: aktin-debian-repository-gpg-public-key
+#
+#      - name: Install aktin-notaufnahme-i2b2 from AKTIN Repository
+#        if: inputs.name-base == 'aktin-notaufnahme-dwh'
+#        run: |
+#          sudo apt install -y openjdk-11-jre-headless
+#          sudo wget -O - https://www.aktin.org/software/repo/org/apt/conf/aktin.gpg.key | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/aktin.gpg
+#          echo "deb https://www.aktin.org/software/repo/org/apt focal main" > /etc/apt/sources.list.d/aktin.list
+#          sudo apt update
+#          sudo apt install -y aktin-notaufnahme-i2b2
+#
+#      - name: Install
+#        run: |
+#          sudo apt install -y openjdk-11-jre-headless
+#          sudo apt install -y "build/${{ inputs.name-base }}_$VERSION.deb"
+#          sudo service wildfly restart
+#
+#      - name: Test
+#        run:  # TODO
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: build/${{ inputs.name-base }}_$VERSION.deb

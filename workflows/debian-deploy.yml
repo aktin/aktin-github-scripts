@@ -1,0 +1,61 @@
+name: AKTIN Deploy Debian
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: 'Artifact name'
+        default: 'debian-package'
+        type: string
+      codename:
+        description: 'OS codename'
+        default: 'noble'
+        type: string
+    secrets:
+        SSH_USER:
+        SSH_PASSPHRASE:
+        SSH_PRIVATE_KEY:
+
+jobs:
+  debian-deploy:
+    runs-on: ubuntu-latest
+    needs: debian-build
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    env:
+      REPREPRO_HOME:  # TODO
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+
+
+      # TODO decide on variant
+      # variant: private key authentication
+      #   Requirement: authentication public key is in .ssh/authorized_keys of remote
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Deploy Debian Package
+        run: scp aktin-notaufnahme-*.deb "${{ secrets.SSH_USER }}@aktin.org:/$REPREPRO_HOME/"
+      - name: Import Debian Packages
+        run: ssh ${{ secrets.SSH_USER }}@aktin.org "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} aktin-notaufnahme-*.deb"
+      - name: Update OS Codename in "conf/distributions"
+        run: |
+          ssh ${{ secrets.SSH_USER }}@aktin.org "sed -i '0,/Codename: [a-z]*/s//Codename: ${{ inputs.codename }}/' conf/distributions"
+
+
+      # variant: passphrase authentication
+      - name: Deploy Debian Package
+        run: |
+          sudo apt install -y sshpass
+          sshpass -p "${{ secrets.SSH_PASSPHRASE }}" scp aktin-notaufnahme-*.deb "${{ secrets.SSH_USER }}@aktin.org:/$REPREPRO_HOME/"
+      - name: Import Debian Packages
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSPHRASE }}" ssh ${{ secrets.SSH_USER }}@aktin.org \
+          "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} aktin-notaufnahme-*.deb"
+      - name: Update OS Codename in "conf/distributions"
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSPHRASE }}" ssh ${{ secrets.SSH_USER }}@aktin.org \
+          "sed -i '0,/Codename: [a-z]*/s//Codename: ${{ inputs.codename }}/' conf/distributions"
