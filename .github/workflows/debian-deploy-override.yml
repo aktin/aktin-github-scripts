@@ -62,4 +62,4 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy APT Repository
-        run: scp -r "$REPREPRO_HOME" "${{ secrets.SSH_USER }}@aktin.org:/$REPREPRO_HOME"
+        run: scp -r "$REPREPRO_HOME" "${{ secrets.SSH_USER }}@a2f8a.netcupt.net:/$REPREPRO_HOME"

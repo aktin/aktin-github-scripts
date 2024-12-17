@@ -12,8 +12,12 @@ on:
         default: 'noble'
         type: string
     secrets:
-        SSH_USER:
-        SSH_PRIVATE_KEY:
+      SSH_USER:
+        description: 'Username for the server hosting the APT repository'
+        required: true
+      SSH_PRIVATE_KEY:
+        description: 'Private Key for authenticating with the server hosting the APT repository'
+        required: true
 
 jobs:
   debian-deploy:
@@ -34,9 +38,11 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy Debian Package
-        run: scp aktin-notaufnahme-*.deb "${{ secrets.SSH_USER }}@aktin.org:/$REPREPRO_HOME/"
+        run: scp aktin-notaufnahme-*.deb "${{ secrets.SSH_USER }}@a2f8a.netcupt.net:/$REPREPRO_HOME/"
+
       - name: Import Debian Packages
-        run: ssh ${{ secrets.SSH_USER }}@aktin.org "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} aktin-notaufnahme-*.deb"
+        run: ssh ${{ secrets.SSH_USER }}@a2f8a.netcupt.net "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} aktin-notaufnahme-*.deb"
+
       - name: Update OS Codename in "conf/distributions"
         run: |
-          ssh ${{ secrets.SSH_USER }}@aktin.org "sed -i '0,/Codename: [a-z]*/s//Codename: ${{ inputs.codename }}/' conf/distributions"
+          ssh ${{ secrets.SSH_USER }}@a2f8a.netcupt.net "sed -i '0,/Codename: [a-z]*/s//Codename: ${{ inputs.codename }}/' conf/distributions"
