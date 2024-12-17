@@ -15,10 +15,6 @@ on:
       SSH_USER:
         description: 'Username for the server hosting the APT repository'
         required: true
-      # TODO PASSPHRASE or PRIVATE_KEY authentication
-      SSH_PASSPHRASE:
-        description: 'Passphrase for authenticating with the server hosting the APT repository'
-        required: true
       SSH_PRIVATE_KEY:
         description: 'Private Key for authenticating with the server hosting the APT repository'
         required: true
@@ -60,18 +56,10 @@ jobs:
       - name: Import Debian Packages
         run: reprepro -b "$REPREPRO_HOME" includedeb ${{ inputs.codename }} aktin-notaufnahme-*.deb
 
-      # TODO decide on variant
-      # variant: private key authentication
-      #   Requirement: authentication public key is in .ssh/authorized_keys of remote
       - name: Setup SSH Key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Deploy APT Repository
         run: scp -r "$REPREPRO_HOME" "${{ secrets.SSH_USER }}@aktin.org:/$REPREPRO_HOME"
-
-      # variant: passphrase authentication
-      - name: Deploy APT Repository
-        run: |
-          sudo apt install -y sshpass
-          sshpass -p "${{ secrets.SSH_PASSPHRASE }}" scp -r "$REPREPRO_HOME" "${{ secrets.SSH_USER }}@aktin.org:/$REPREPRO_HOME"
