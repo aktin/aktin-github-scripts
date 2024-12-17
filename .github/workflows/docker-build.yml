@@ -7,11 +7,6 @@ on:
         description: 'Artifact name'
         default: 'dockerfiles'
         type: string
-      download-i2b2:
-        description: 'Download i2b2 update ZIP when building notaufnahme-i2b2 docker image'
-        default: false
-        type: boolean
-
 
 jobs:
   docker-build:
@@ -30,10 +25,6 @@ jobs:
         with:
           path: src/downloads/
           key: downloads--${{ env.CACHE }}
-
-      - name: Retrieve i2b2 Update
-        if: steps.i2b2-cache.outputs.cache-hit != 'true' && inputs.download-i2b2
-        run:  # TODO
 
       - name: Build Dockerfiles
         run: build.sh
