@@ -25,7 +25,7 @@ jobs:
     needs: debian-build
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     env:
-      REPREPRO_HOME:  # TODO
+      REPREPRO_HOME: /software/repo/org/apt   # local directory containing conf, db, dists, and pool directories)
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
@@ -38,7 +38,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy Debian Package
-        run: scp aktin-notaufnahme-*.deb "${{ secrets.SSH_USER }}@a2f8a.netcupt.net:/$REPREPRO_HOME/"
+        run: scp aktin-notaufnahme-*.deb "${{ secrets.SSH_USER }}@a2f8a.netcupt.net:$REPREPRO_HOME/"
 
       - name: Import Debian Packages
         run: ssh ${{ secrets.SSH_USER }}@a2f8a.netcupt.net "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} aktin-notaufnahme-*.deb"
