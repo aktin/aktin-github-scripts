@@ -42,35 +42,33 @@ jobs:
       - name: Build Debian
         run: build.sh $VERSION
 
-# Note: Because no tests are implemented yet, installation of the debian packages are not required yet
-#
-#      - name: Retrieve Cached GPG Public Key
-#        id: gpg-key-cache
-#        if: inputs.package-name == 'aktin-notaufnahme-dwh'
-#        uses: actions/cache@v4
-#        with:
-#          path: /etc/apt/trusted.gpg.d/aktin.gpg
-#          key: aktin-debian-repository-gpg-public-key
-#
-#      - name: Download GPG Public Key
-#        if: inputs.package-name == 'aktin-notaufnahme-dwh' && steps.gpg-key-cache.outputs.cache-hit
-#        run: |
-#          sudo wget -O - https://www.aktin.org/software/repo/org/apt/conf/aktin.gpg.key | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/aktin.gpg
-#          echo "deb https://www.aktin.org/software/repo/org/apt focal main" > /etc/apt/sources.list.d/aktin.list
-#          sudo apt update
-#
-#      - name: Install aktin-notaufnahme-i2b2 from AKTIN Repository
-#        if: inputs.package-name == 'aktin-notaufnahme-dwh'
-#        run: |
-#          sudo apt install -y openjdk-11-jre-headless
-#          sudo apt install -y aktin-notaufnahme-i2b2
-#
-#      - name: Install
-#        run: |
-#          sudo apt install -y openjdk-11-jre-headless
-#          sudo apt install -y "build/${{ inputs.package-name }}_$VERSION.deb"
-#          sudo service wildfly restart
-#
+      - name: Retrieve Cached GPG Public Key
+        id: gpg-key-cache
+        if: inputs.package-name == 'aktin-notaufnahme-dwh'
+        uses: actions/cache@v4
+        with:
+          path: /etc/apt/trusted.gpg.d/aktin.gpg
+          key: aktin-debian-repository-gpg-public-key
+
+      - name: Download GPG Public Key
+        if: inputs.package-name == 'aktin-notaufnahme-dwh' && steps.gpg-key-cache.outputs.cache-hit
+        run: |
+          sudo wget -O - https://www.aktin.org/software/repo/org/apt/conf/aktin.gpg.key | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/aktin.gpg
+          echo "deb https://www.aktin.org/software/repo/org/apt focal main" > /etc/apt/sources.list.d/aktin.list
+          sudo apt update
+
+      - name: Install aktin-notaufnahme-i2b2 from AKTIN Repository
+        if: inputs.package-name == 'aktin-notaufnahme-dwh'
+        run: |
+          sudo apt install -y openjdk-11-jre-headless
+          sudo apt install -y aktin-notaufnahme-i2b2
+
+      - name: Install
+        run: |
+          sudo apt install -y openjdk-11-jre-headless
+          sudo apt install -y "build/${{ inputs.package-name }}_$VERSION.deb"
+          sudo service wildfly restart
+
 #      - name: Test
 #        run:  # TODO
 

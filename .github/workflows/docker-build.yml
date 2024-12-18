@@ -29,11 +29,11 @@ jobs:
       - name: Build Dockerfiles
         run: build.sh
 
-#      - name: Install
-#        run: |
-#          docker compose build
-#          docker compose -f sample/docker-compose.yml up -d
-#
+      - name: Install
+        run: |
+          docker compose build
+          docker compose -f sample/docker-compose.yml up -d
+
 #      - name: Test
 #        run:  # TODO
 
