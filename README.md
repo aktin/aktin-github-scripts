@@ -58,7 +58,7 @@ on:
 
 jobs:
   call-reusable-workflow:
-    uses: aktin/aktin-github-scripts/workflows/workflow1.yml@main
+    uses: aktin/aktin-github-scripts/.github/workflows/workflow1.yml@main
     with:
       input1: 'value1'
       input2: 'value2'
