@@ -42,7 +42,3 @@ jobs:
 
       - name: Import Debian Packages
         run: ssh ${{ secrets.SSH_USER }}@a2f8a.netcupt.net "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} aktin-notaufnahme-*.deb"
-
-      - name: Update OS Codename in "conf/distributions"
-        run: |
-          ssh ${{ secrets.SSH_USER }}@a2f8a.netcupt.net "sed -i '0,/Codename: [a-z]*/s//Codename: ${{ inputs.codename }}/' conf/distributions"
