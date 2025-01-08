@@ -40,7 +40,7 @@ jobs:
           key: downloads--${{ env.CACHE }}
 
       - name: Build Debian
-        run: build.sh $VERSION
+        run: build.sh
 
       - name: Retrieve Cached GPG Public Key
         id: gpg-key-cache
