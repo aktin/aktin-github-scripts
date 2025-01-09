@@ -11,17 +11,26 @@ on:
         description: 'Name of the debian package (either aktin-notaufnahme-i2b2 or aktin-notaufnahme-dwh)'
         required: true
         type: string
+    outputs:
+      package-version:
+        description: 'Version of the debian package'
+        value: ${{ jobs.debian-build.outputs.version }}
 
 
 jobs:
   debian-build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.prep-version.outputs.version }}
     steps:
       - name: Prepare Version Variable - Deployment
+        id: prep-version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          STR=$(grep "PACKAGE_VERSION=" versions) 
-          echo "VERSION=${STR#PACKAGE_VERSION=}" >> $GITHUB_ENV
+          STR=$(grep "PACKAGE_VERSION=" versions)
+          VERSION=${STR#PACKAGE_VERSION=}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
         working-directory: src/resources
 
       - name: Prepare Version Variable - Testing
