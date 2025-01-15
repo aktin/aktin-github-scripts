@@ -59,3 +59,4 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: src/debian/build/${{ inputs.package-name }}_$VERSION.deb
+          if-no-files-found: 'error'
