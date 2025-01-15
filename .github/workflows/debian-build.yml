@@ -1,14 +1,14 @@
-name: AKTIN Build Debian
+name: Build Debian Package
 
 on:
   workflow_call:
     inputs:
       artifact-name:
-        description: 'Artifact name'
+        description: 'Name of the artifact which contains the debian package'
         default: 'debian-package'
         type: string
       package-name:
-        description: 'Name of the debian package (either aktin-notaufnahme-i2b2 or aktin-notaufnahme-dwh)'
+        description: 'Name of the debian package'
         required: true
         type: string
     outputs:

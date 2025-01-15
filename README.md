@@ -37,9 +37,9 @@ jobs:
 ### Workflows:
 
 - **debian-build.yml**: Build a debian package, run integration tests, upload DEB as build artifact
-- **debian-depoly.yml**: Retrieve DEB build artifact and add it to a remote debian repository with reprepro
-- **debian-depoly-gh.yml**: Retrieve DEB build artifact and add it to debian repository hosted in the repository which calls debian-deploy.yml
-- **debian-depoly-override.yml**: Retrieve DEB build artifacts, create new reprepro debian repository, and push it to a remote server (i2b2 DEb is >100MB)
+- **debian-deploy.yml**: Retrieve DEB build artifact and add it to a remote debian repository with reprepro
+- **debian-deploy-gh.yml**: Retrieve DEB build artifact and add it to debian repository hosted in the repository which calls debian-deploy.yml
+- **debian-deploy-override.yml**: Retrieve DEB build artifacts, create new reprepro debian repository, and push it to a remote server (i2b2 DEb is >100MB)
 - **maven-build-deploy.yml**: Build maven project, run integration test, optionally deploy JAR/WAR/EAR to AKTIN maven repository
 
 #### Usage:
