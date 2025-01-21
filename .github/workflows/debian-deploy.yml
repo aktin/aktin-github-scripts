@@ -9,7 +9,7 @@ on:
         type: string
       codename:
         description: 'OS codename'
-        default: 'noble'
+        default: 'jammy'
         type: string
       package-name:
         description: 'Name of the debian package'
