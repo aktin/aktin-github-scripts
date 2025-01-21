@@ -51,7 +51,9 @@ jobs:
           key: downloads--${{ env.CACHE }}
 
       - name: Build Debian
-        run: build.sh
+        run: |
+          chmod +x build.sh
+          build.sh
         working-directory: src/debian
 
       - name: Upload Build Artifact
