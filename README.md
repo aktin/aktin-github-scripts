@@ -8,7 +8,6 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 
 ### Actions:
 
-- **get-newest-artifact**: Get artifacts from the last success run of a specified workflow
 - **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects
 
 #### Usage:
