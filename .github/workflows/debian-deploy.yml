@@ -26,6 +26,9 @@ on:
       SSH_PRIVATE_KEY:
         description: 'Private Key for authenticating with the server hosting the AKTIN APT repository'
         required: true
+      SSH_REMOTE:
+        description: 'Hostname of the server hosting the AKTIN APT repository'
+        required: true
 
 jobs:
   debian-deploy:
@@ -46,7 +49,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy Debian Package
-        run: scp $PACKAGE "${{ secrets.SSH_USER }}@a2f8a.netcupt.net:$REPREPRO_HOME/"
+        run: scp $PACKAGE "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}:$REPREPRO_HOME/"
 
       - name: Import Debian Packages
-        run: ssh ${{ secrets.SSH_USER }}@a2f8a.netcupt.net "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} $PACKAGE"
+        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }} "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} $PACKAGE"
