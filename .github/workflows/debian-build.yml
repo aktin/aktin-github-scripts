@@ -13,7 +13,7 @@ on:
         type: string
     outputs:
       package-version:
-        description: 'Version of the debian package'
+        description: 'Version of the built debian package'
         value: ${{ jobs.debian-build.outputs.version }}
 
 
