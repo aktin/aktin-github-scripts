@@ -38,8 +38,6 @@ jobs:
 
 - **debian-build**: Builds a Debian package, runs integration tests, and uploads the `.deb` as a build artifact
 - **debian-deploy**: Retrieves the `.deb` build artifact and adds it to a remote Debian repository using `reprepro`
-- **debian-deploy-gh**: Retrieves the `.deb` build artifact and adds it to a Debian repository within the same repository that invokes `debian-deploy`
-- **debian-deploy-override**: Retrieves `.deb` build artifacts, creates a new `reprepro`-based Debian repository, and pushes it to a remote server (i2b2 Debian package exceeds 100MB)
 - **maven-build-deploy**: Builds a Maven project, runs integration tests, and optionally deploys `.jar`/`.war`/`.ear` files to the AKTIN Maven repository
 
 #### Usage:
