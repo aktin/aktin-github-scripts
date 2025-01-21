@@ -9,7 +9,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 ### Actions:
 
 - **get-newest-artifact**: Get artifacts from the last success run of a specified workflow
-- **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects.
+- **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects
 
 #### Usage:
 
@@ -36,11 +36,11 @@ jobs:
 
 ### Workflows:
 
-- **debian-build.yml**: Build a debian package, run integration tests, upload DEB as build artifact
-- **debian-deploy.yml**: Retrieve DEB build artifact and add it to a remote debian repository with reprepro
-- **debian-deploy-gh.yml**: Retrieve DEB build artifact and add it to debian repository hosted in the repository which calls debian-deploy.yml
-- **debian-deploy-override.yml**: Retrieve DEB build artifacts, create new reprepro debian repository, and push it to a remote server (i2b2 DEb is >100MB)
-- **maven-build-deploy.yml**: Build maven project, run integration test, optionally deploy JAR/WAR/EAR to AKTIN maven repository
+- **debian-build**: Builds a Debian package, runs integration tests, and uploads the `.deb` as a build artifact
+- **debian-deploy**: Retrieves the `.deb` build artifact and adds it to a remote Debian repository using `reprepro`
+- **debian-deploy-gh**: Retrieves the `.deb` build artifact and adds it to a Debian repository within the same repository that invokes `debian-deploy`
+- **debian-deploy-override**: Retrieves `.deb` build artifacts, creates a new `reprepro`-based Debian repository, and pushes it to a remote server (i2b2 Debian package exceeds 100MB)
+- **maven-build-deploy**: Builds a Maven project, runs integration tests, and optionally deploys `.jar`/`.war`/`.ear` files to the AKTIN Maven repository
 
 #### Usage:
 
