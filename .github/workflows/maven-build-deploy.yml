@@ -12,11 +12,10 @@ on:
         default: 'temurin'
         required: false
         type: string
-      install-r:
-        description: 'Whether to install r-base and r-cran-tidyverse before testing'
-        default: false
+      apt-dependencies:
+        description: 'Dependencies installed via apt (as space separated list)'
         required: false
-        type: boolean
+        type: string
     secrets:
       AKTIN_MAVEN_USERNAME:
         description: 'Maven repository username'
@@ -62,8 +61,8 @@ jobs:
           gpg-passphrase: MAVEN_GPG_PASSPHRASE  # env variable for GPG private key passphrase
 
       - name: Install APT Dependencies
-        if: inputs.install-r
-        run: sudo apt install -y r-base r-cran-tidyverse
+        if: inputs.apt-dependencies
+        run: sudo apt install -y ${{ inputs.apt-dependencies }}
 
       - name: Build & (Unit-)Test
 #        run: mvn -B package -Dchangelist=-SNAPSHOT+${{ github.run_number }}
