@@ -29,6 +29,9 @@ on:
       AKTIN_MAVEN_GPG_PRIVATE_KEY:
         description: 'Content of the maven repositories GPG private key'
         required: false
+      AKTIN_MAVEN_REPOSITORY:
+        description: 'Hostname of the server hosting the maven repository'
+        required: false
 
 
 jobs:
@@ -80,3 +83,4 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.AKTIN_MAVEN_USERNAME }}
           MAVEN_PASSPHRASE: ${{ secrets.AKTIN_MAVEN_PASSPHRASE }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.AKTIN_MAVEN_GPG_PASSPHRASE }}
+          MAVEN_REPOSITORY: ${{ secrets.AKTIN_MAVEN_REPOSITORY }}
