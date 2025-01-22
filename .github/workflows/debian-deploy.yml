@@ -19,6 +19,10 @@ on:
         description: 'Version of the debian package'
         required: true
         type: string
+      repository-path:
+        description: 'Local directory containing conf, db, dists, and pool directories'
+        default: '/software/repo/org/apt'
+        type: string
     secrets:
       SSH_USER:
         description: 'Username for the server hosting the AKTIN APT repository'
@@ -49,7 +53,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy Debian Package
-        run: scp $PACKAGE "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}:$REPREPRO_HOME/"
+        run: scp $PACKAGE "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}:${{ inputs.repository-path }}/"
 
       - name: Import Debian Packages
-        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }} "reprepro -b '$REPREPRO_HOME' includedeb ${{ inputs.codename }} $PACKAGE"
+        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }} "reprepro -b '${{ inputs.repository-path }}' includedeb ${{ inputs.codename }} $PACKAGE"
