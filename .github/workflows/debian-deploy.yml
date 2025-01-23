@@ -39,7 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     env:
-      REPREPRO_HOME: /software/repo/org/apt   # local directory containing conf, db, dists, and pool directories
       PACKAGE: "${{ inputs.package-name }}_${{ inputs.package-version }}.deb"
     steps:
       - name: Download Build Artifact
