@@ -58,7 +58,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy Debian Package
-        run: scp $PACKAGE "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}:${{ inputs.repository-path }}/"
+        run: scp "$PACKAGE" "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}:${{ inputs.repository-path }}/"
 
       - name: Import Debian Packages
         run: >  # use folded block style (>) because this is one long command 
