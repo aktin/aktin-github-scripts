@@ -33,6 +33,12 @@ on:
       SSH_REMOTE:
         description: 'Hostname of the server hosting the AKTIN APT repository'
         required: true
+      GPG_PASSPHRASE:
+        description: 'Passphrase for GPG private key used for signing the published debian packages'
+        required: true
+      GPG_KEYGRIP:
+        description: 'Keygrip identifier of the GPG private key'
+        required: true
 
 jobs:
   debian-deploy:
@@ -55,4 +61,10 @@ jobs:
         run: scp $PACKAGE "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}:${{ inputs.repository-path }}/"
 
       - name: Import Debian Packages
-        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }} "reprepro -b '${{ inputs.repository-path }}' includedeb ${{ inputs.codename }} $PACKAGE"
+        run: >  # use folded block style (>) because this is one long command 
+          ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}" 
+          "
+          /usr/lib/gnupg/gpg-preset-passphrase -c -P '${{ secrets.GPG_PASSPHRASE }}' '${{ secrets.GPG_KEYGRIP }}';
+          reprepro -b '${{ inputs.repository-path }}' includedeb '${{ inputs.codename }}' $PACKAGE;
+          gpg-connect-agent reloadagent /bye
+          "
