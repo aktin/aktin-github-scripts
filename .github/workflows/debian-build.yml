@@ -36,6 +36,7 @@ jobs:
 
       - name: Generate Cache Name
         run: echo "CACHE=${sort versions | awk '!/(^[[:space:]]*$|PACKAGE_VERSION=|#)/' ORS='--'}" >> $GITHUB_ENV
+        working-directory: src/resources
 
       - name: Retrieve Cached Downloads
         uses: actions/cache@v4
