@@ -68,13 +68,11 @@ jobs:
         run: sudo apt install -y ${{ inputs.apt-dependencies }}
 
       - name: Build & (Unit-)Test
-#        run: mvn -B package -Dchangelist=-SNAPSHOT+${{ github.run_number }}
         run: mvn -B package --no-transfer-progress
         working-directory: ${{ env.WORK_DIR }}
 
       - name: Deploy
         if: startsWith(github.ref, 'refs/tags/v')
-#        run: mvn deploy -Drevision=${GITHUB_REF_NAME#v} -Dchangelist=
         run: |
           mvn versions:set -DnewVersion=${GITHUB_REF_NAME#v}
           mvn deploy --no-transfer-progress
