@@ -16,7 +16,6 @@ on:
         description: 'Version of the built debian package'
         value: ${{ jobs.debian-build.outputs.version }}
 
-
 jobs:
   debian-build:
     runs-on: ubuntu-latest
