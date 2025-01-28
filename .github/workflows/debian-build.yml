@@ -54,5 +54,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
-          path: src/debian/build/${{ inputs.package-name }}_$VERSION.deb
+          path: src/debian/build/${{ inputs.package-name }}_${{ env.VERSION }}.deb
           if-no-files-found: 'error'
