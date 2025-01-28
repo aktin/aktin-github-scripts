@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       java-version:
-        description: 'Java version number'
+        description: 'Java LTS version'
         required: true
         type: number
       java-distribution:
