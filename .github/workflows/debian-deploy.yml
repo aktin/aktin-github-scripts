@@ -65,7 +65,7 @@ jobs:
           ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}" 
           "
           /usr/lib/gnupg/gpg-preset-passphrase -c -P '${{ secrets.GPG_PASSPHRASE }}' '${{ secrets.GPG_KEYGRIP }}';
-          reprepro -b '${{ inputs.repository-path }}' includedeb '${{ inputs.codename }}' $PACKAGE;
+          reprepro -b '${{ inputs.repository-path }}' includedeb '${{ inputs.codename }}' '${{ inputs.repository-path }}/$PACKAGE';
           reprepro -b '${{ inputs.repository-path }}' list '${{ inputs.codename }}'
           rm '${{ inputs.repository-path }}/$PACKAGE'
           gpg-connect-agent reloadagent /bye
