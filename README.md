@@ -8,7 +8,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 
 ### Actions:
 
-- **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects.
+- **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects
 
 #### Usage:
 
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run action1
-        uses: aktin/aktin-github-actions/action1@main
+        uses: aktin/aktin-github-scripts/action1@main
         with:
           parameter1: 'value1'
           parameter2: 'value2 value3 value4'
@@ -35,7 +35,9 @@ jobs:
 
 ### Workflows:
 
--
+- **debian-build**: Builds a Debian package, runs integration tests, and uploads the `.deb` as a build artifact
+- **debian-deploy**: Retrieves the `.deb` build artifact and adds it to a remote Debian repository using `reprepro`
+- **maven-build-deploy**: Builds a Maven project, runs integration tests, and optionally deploys `.jar`/`.war`/`.ear` files to the AKTIN Maven repository
 
 #### Usage:
 
@@ -51,7 +53,7 @@ on:
 
 jobs:
   call-reusable-workflow:
-    uses: aktin/aktin-github-actions/workflows/workflow1.yml@main
+    uses: aktin/aktin-github-scripts/.github/workflows/workflow1.yml@main
     with:
       input1: 'value1'
       input2: 'value2'

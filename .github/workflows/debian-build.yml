@@ -1,0 +1,57 @@
+name: Build Debian Package
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: 'Name of the artifact which contains the debian package'
+        default: 'debian-package'
+        type: string
+      package-name:
+        description: 'Name of the debian package'
+        required: true
+        type: string
+    outputs:
+      package-version:
+        description: 'Version of the built debian package'
+        value: ${{ jobs.debian-build.outputs.version }}
+
+jobs:
+  debian-build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.prep-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare Version Variable
+        id: prep-version
+        run: |
+          STR=$(grep "PACKAGE_VERSION=" versions)
+          VERSION=${STR#PACKAGE_VERSION=}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        working-directory: src/resources
+
+      - name: Generate Cache Name
+        run: echo "CACHE=${sort versions | awk '!/(^[[:space:]]*$|PACKAGE_VERSION=|#)/' ORS='--'}" >> $GITHUB_ENV
+        working-directory: src/resources
+
+      - name: Retrieve Cached Downloads
+        uses: actions/cache@v4
+        with:
+          path: src/downloads/
+          key: downloads--${{ env.CACHE }}
+
+      - name: Build Debian
+        run: |
+          chmod +x build.sh
+          build.sh
+        working-directory: src/debian
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: src/debian/build/${{ inputs.package-name }}_${{ env.VERSION }}.deb
+          if-no-files-found: 'error'

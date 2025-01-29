@@ -1,0 +1,72 @@
+name: AKTIN Deploy Debian Package
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: 'Artifact name'
+        default: 'debian-package'
+        type: string
+      codename:
+        description: 'OS codename'
+        default: 'jammy'
+        type: string
+      package-name:
+        description: 'Name of the debian package'
+        required: true
+        type: string
+      package-version:
+        description: 'Version of the debian package'
+        required: true
+        type: string
+      repository-path:
+        description: 'Local directory containing conf, db, dists, and pool directories'
+        default: '/software/repo/org/apt'
+        type: string
+    secrets:
+      SSH_USER:
+        description: 'Username for the server hosting the AKTIN APT repository'
+        required: true
+      SSH_PRIVATE_KEY:
+        description: 'Private Key for authenticating with the server hosting the AKTIN APT repository'
+        required: true
+      SSH_REMOTE:
+        description: 'Hostname of the server hosting the AKTIN APT repository'
+        required: true
+      GPG_PASSPHRASE:
+        description: 'Passphrase for GPG private key used for signing the published debian packages'
+        required: true
+      GPG_KEYGRIP:
+        description: 'Keygrip identifier of the GPG private key'
+        required: true
+
+jobs:
+  debian-deploy:
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    env:
+      PACKAGE: "${{ inputs.package-name }}_${{ inputs.package-version }}.deb"
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Transfer Debian Package to Remote
+        run: scp "$PACKAGE" "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}:${{ inputs.repository-path }}/"
+
+      - name: Include Debian Package in APT Repository
+        run: >  # use folded block style (>) because this is one long command 
+          ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE }}" 
+          "
+          /usr/lib/gnupg/gpg-preset-passphrase -c -P '${{ secrets.GPG_PASSPHRASE }}' '${{ secrets.GPG_KEYGRIP }}';
+          reprepro -b '${{ inputs.repository-path }}' includedeb '${{ inputs.codename }}' '${{ inputs.repository-path }}/$PACKAGE';
+          reprepro -b '${{ inputs.repository-path }}' list '${{ inputs.codename }}'
+          rm '${{ inputs.repository-path }}/$PACKAGE'
+          gpg-connect-agent reloadagent /bye
+          "
