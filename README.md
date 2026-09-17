@@ -5,7 +5,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 
 - **workflows/**: Contains reusable GitHub workflow files.
 - **actions/**: Contains custom actions, each in its own subfolder.
-- **hooks/**: Contains shared pre-commit hooks, registered in `.pre-commit-hooks.yaml`.
+- **hooks/**: Contains pre-commit hooks to copy into your repository, with an example configuration.
 
 ### Actions:
 
@@ -71,27 +71,7 @@ jobs:
 
 #### Usage:
 
-The hooks are an offer for other repositories, nothing is enforced in this repository. `.pre-commit-hooks.yaml` in the root is the pre-commit manifest that makes the hooks referenceable. There are two ways to use them:
-
-**Option A: reference this repository.** Updates arrive by bumping `rev`.
-
-```yaml
-# .pre-commit-config.yaml
-default_install_hook_types: [pre-commit, commit-msg]
-
-repos:
-  - repo: https://github.com/aktin/aktin-github-scripts
-    rev: main
-    hooks:
-      - id: block-data-files
-      - id: check-large-files
-      - id: check-commit-size
-      - id: check-commit-message
-```
-
-**Option B: copy the scripts.** No dependency on this repository. Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder.
-
-In both cases install the hooks once with `pre-commit install`.
+The hooks are an offer for other repositories, nothing is enforced in this repository. Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder. Then install the hooks once with `pre-commit install`.
 
 ### License:
 

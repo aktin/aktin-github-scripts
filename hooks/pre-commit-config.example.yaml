@@ -1,6 +1,6 @@
-# Example .pre-commit-config.yaml for repositories that copy the hooks/ folder
-# instead of referencing aktin-github-scripts. Copy this file to the root of your
-# repository as .pre-commit-config.yaml and install the hooks once with:
+# Example .pre-commit-config.yaml for repositories that use the hooks/ folder.
+# Copy this file to the root of your repository as .pre-commit-config.yaml and
+# install the hooks once with:
 #   pre-commit install
 default_install_hook_types: [pre-commit, commit-msg]
 
