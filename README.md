@@ -4,34 +4,6 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 ### Folder Structure:
 
 - **workflows/**: Contains reusable GitHub workflow files.
-- **actions/**: Contains custom actions, each in its own subfolder.
-
-### Actions:
-
-- **python-ql**: Performs linting, code formatting, security scanning, and custom integration testing for Python projects
-
-#### Usage:
-
-To use any of the actions in your GitHub workflows, you can reference this repository and the specific action within your workflow YAML file.
-
-```yaml
-# .github/workflows/my-workflow.yml
-name: My Workflow
-on: [push]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Run action1
-        uses: aktin/aktin-github-scripts/action1@main
-        with:
-          parameter1: 'value1'
-          parameter2: 'value2 value3 value4'
-```
 
 ### Workflows:
 
