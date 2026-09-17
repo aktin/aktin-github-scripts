@@ -1,3 +1,6 @@
+# Hook manifest for pre-commit. It does not install or enforce any hooks in this
+# repository. It only tells pre-commit which hooks other repositories can use when
+# they reference this repository in their own .pre-commit-config.yaml (see README).
 - id: block-data-files
   name: Block data files outside tests/fixtures
   description: Reject staged data files (csv, xlsx, sql, dcm, hl7, ...) outside tests/fixtures/ to keep patient data out of the repository

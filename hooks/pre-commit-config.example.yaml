@@ -1,0 +1,33 @@
+# Example .pre-commit-config.yaml for repositories that copy the hooks/ folder
+# instead of referencing aktin-github-scripts. Copy this file to the root of your
+# repository as .pre-commit-config.yaml and install the hooks once with:
+#   pre-commit install
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: local
+    hooks:
+      - id: block-data-files
+        name: Block data files outside tests/fixtures
+        entry: python3 hooks/block_data_files.py
+        language: system
+        types: [file]
+
+      - id: check-large-files
+        name: Check for large files
+        entry: python3 hooks/check_large_files.py
+        language: system
+        types: [file]
+
+      - id: check-commit-size
+        name: Check commit size
+        entry: python3 hooks/check_commit_size.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: check-commit-message
+        name: Check commit message format
+        entry: python3 hooks/check_commit_message.py
+        language: system
+        stages: [commit-msg]

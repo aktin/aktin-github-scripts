@@ -71,7 +71,9 @@ jobs:
 
 #### Usage:
 
-Add this repository to the `.pre-commit-config.yaml` of your project and install the hooks with `pre-commit install`.
+The hooks are an offer for other repositories, nothing is enforced in this repository. `.pre-commit-hooks.yaml` in the root is the pre-commit manifest that makes the hooks referenceable. There are two ways to use them:
+
+**Option A: reference this repository.** Updates arrive by bumping `rev`.
 
 ```yaml
 # .pre-commit-config.yaml
@@ -86,6 +88,10 @@ repos:
       - id: check-commit-size
       - id: check-commit-message
 ```
+
+**Option B: copy the scripts.** No dependency on this repository. Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder.
+
+In both cases install the hooks once with `pre-commit install`.
 
 ### License:
 
