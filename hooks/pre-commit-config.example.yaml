@@ -9,25 +9,25 @@ repos:
     hooks:
       - id: block-data-files
         name: Block data files outside tests/fixtures
-        entry: python3 hooks/block_data_files.py
+        entry: python3 hooks/pre-commit/block_data_files.py
         language: system
         types: [file]
 
       - id: check-large-files
         name: Check for large files
-        entry: python3 hooks/check_large_files.py
+        entry: python3 hooks/pre-commit/check_large_files.py
         language: system
         types: [file]
 
       - id: check-commit-size
         name: Check commit size
-        entry: python3 hooks/check_commit_size.py
+        entry: python3 hooks/pre-commit/check_commit_size.py
         language: system
         pass_filenames: false
         always_run: true
 
       - id: check-commit-message
         name: Check commit message format
-        entry: python3 hooks/check_commit_message.py
+        entry: python3 hooks/commit-msg/check_commit_message.py
         language: system
         stages: [commit-msg]
