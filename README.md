@@ -5,6 +5,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 
 - **workflows/**: Contains reusable GitHub workflow files.
 - **actions/**: Contains custom actions, each in its own subfolder.
+- **hooks/**: Contains pre-commit hooks to copy into your repository, with an example configuration.
 
 ### Actions:
 
@@ -60,6 +61,17 @@ jobs:
     secrets:
       my_secret: ${{ secrets.MY_SECRET }}
 ```
+
+### Pre-Commit Hooks:
+
+- **block-data-files**: Rejects staged data files (`.csv`, `.xlsx`, `.sql`, `.dcm`, `.hl7`, ...) outside `tests/fixtures/` to keep patient data out of the repository
+- **check-large-files**: Rejects staged files larger than 500 KB
+- **check-commit-size**: Rejects commits that change more than 200 lines in total (insertions plus deletions). Configure the limit with `args: ['--max-lines=300']`
+- **check-commit-message**: Validates the commit message against the EU System Conventional Commit rules (`<type>(<scope>): <subject>`)
+
+#### Usage:
+
+The hooks are an offer for other repositories, nothing is enforced in this repository. Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder. Then install the hooks once with `pre-commit install`.
 
 ### License:
 
