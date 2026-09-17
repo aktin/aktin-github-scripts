@@ -5,6 +5,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 
 - **workflows/**: Contains reusable GitHub workflow files.
 - **actions/**: Contains custom actions, each in its own subfolder.
+- **hooks/**: Contains shared pre-commit hooks, registered in `.pre-commit-hooks.yaml`.
 
 ### Actions:
 
@@ -59,6 +60,31 @@ jobs:
       input2: 'value2'
     secrets:
       my_secret: ${{ secrets.MY_SECRET }}
+```
+
+### Pre-Commit Hooks:
+
+- **block-data-files**: Rejects staged data files (`.csv`, `.xlsx`, `.sql`, `.dcm`, `.hl7`, ...) outside `tests/fixtures/` to keep patient data out of the repository
+- **check-large-files**: Rejects staged files larger than 500 KB
+- **check-commit-size**: Rejects commits that change more than 200 lines in total (insertions plus deletions). Configure the limit with `args: ['--max-lines=300']`
+- **check-commit-message**: Validates the commit message against the EU System Conventional Commit rules (`<type>(<scope>): <subject>`)
+
+#### Usage:
+
+Add this repository to the `.pre-commit-config.yaml` of your project and install the hooks with `pre-commit install`.
+
+```yaml
+# .pre-commit-config.yaml
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/aktin/aktin-github-scripts
+    rev: main
+    hooks:
+      - id: block-data-files
+      - id: check-large-files
+      - id: check-commit-size
+      - id: check-commit-message
 ```
 
 ### License:
