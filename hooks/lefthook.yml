@@ -1,0 +1,33 @@
+# Shared git hooks, consumed through lefthook `remotes`. Nothing in this
+# repository installs them. Add this to the lefthook.yml of a project:
+#
+#   remotes:
+#     - git_url: https://github.com/aktin/aktin-github-scripts
+#       ref: main
+#       refetch_frequency: 24h
+#       configs:
+#         - hooks/lefthook.yml
+#
+# Requires lefthook >= 2.0.5 (script args) and python3 on PATH.
+# Override a hook per project in lefthook-local.yml, for example:
+#   pre-commit:
+#     scripts:
+#       "check_commit_size.py":
+#         args: "--max-lines=300"
+source_dir: hooks
+
+pre-commit:
+  scripts:
+    "block_data_files.py":
+      runner: python3
+      args: "{staged_files}"
+    "check_large_files.py":
+      runner: python3
+      args: "{staged_files}"
+    "check_commit_size.py":
+      runner: python3
+
+commit-msg:
+  scripts:
+    "check_commit_message.py":
+      runner: python3

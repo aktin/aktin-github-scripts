@@ -4,7 +4,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 ### Folder Structure:
 
 - **workflows/**: Contains reusable GitHub workflow files.
-- **hooks/**: Contains pre-commit hooks to copy into your repository, with an example configuration.
+- **hooks/**: Contains shared git hooks for [lefthook](https://lefthook.dev), plus an example configuration for the pre-commit framework.
 
 ### Workflows:
 
@@ -31,19 +31,36 @@ jobs:
       input1: 'value1'
       input2: 'value2'
     secrets:
-      my_secret: ${{ secrets.MY_SECRET }}
+      my_s### Git Hooks:
+
+- **block_data_files.py**: Rejects staged data files (`.csv`, `.xlsx`, `.sql`, `.dcm`, `.hl7`, ...) outside `tests/fixtures/` to keep patient data out of the repository
+- **check_large_files.py**: Rejects staged files larger than 500 KB
+- **check_commit_size.py**: Rejects commits that change more than 200 lines in total (insertions plus deletions). Configure the limit with `--max-lines`
+- **check_commit_message.py**: Validates the commit message against the EU System Conventional Commit rules (`<type>(<scope>): <subject>`)
+
+The hooks are plain Python scripts and need `python3` on PATH. Nothing is enforced in this repository, the hooks are an offer for other repositories.
+
+#### Usage with lefthook:
+
+Add the remote to the `lefthook.yml` of your project. lefthook clones this repository into `.git/info/lefthook-remotes/`, merges `hooks/lefthook.yml` into your configuration and runs the scripts from the clone. Requires lefthook 2.0.5 or newer.
+
+```yaml
+# lefthook.yml
+remotes:
+  - git_url: https://github.com/aktin/aktin-github-scripts
+    ref: main
+    refetch_frequency: 24h
+    configs:
+      - hooks/lefthook.yml
 ```
 
-### Pre-Commit Hooks:
+Change `git_url` and `ref` to use another source or pin a version. `ref` must not contain a slash, lefthook uses it as part of a directory name, so use tags or plain branch names. To adjust a hook, override its script entry in `lefthook-local.yml`, for example `args: "--max-lines=300"` for `check_commit_size.py`. The remote config sets `source_dir: hooks`, so projects that keep their own lefthook scripts in `.lefthook/` need to account for that.
 
-- **block-data-files**: Rejects staged data files (`.csv`, `.xlsx`, `.sql`, `.dcm`, `.hl7`, ...) outside `tests/fixtures/` to keep patient data out of the repository
-- **check-large-files**: Rejects staged files larger than 500 KB
-- **check-commit-size**: Rejects commits that change more than 200 lines in total (insertions plus deletions). Configure the limit with `args: ['--max-lines=300']`
-- **check-commit-message**: Validates the commit message against the EU System Conventional Commit rules (`<type>(<scope>): <subject>`)
+#### Usage with pre-commit:
 
-#### Usage:
+Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder. Then install the hooks once with `pre-commit install`.
 
-The hooks are an offer for other repositories, nothing is enforced in this repository. Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder. Then install the hooks once with `pre-commit install`.
+oks once with `pre-commit install`.
 
 ### License:
 
