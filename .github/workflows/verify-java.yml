@@ -1,0 +1,38 @@
+# Reusable: full check of a Maven project. Runs the language independent lint
+# from verify-base.yml and `./mvnw -B verify`, the server side counterpart of
+# hooks/lefthook-java.yml.
+name: verify-java
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: 'Java version'
+        default: '25'
+        required: false
+        type: string
+      java-distribution:
+        description: 'Java distribution'
+        default: 'temurin'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  base:
+    uses: ./.github/workflows/verify-base.yml
+
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: ${{ inputs.java-distribution }}
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+      - run: ./mvnw -B verify

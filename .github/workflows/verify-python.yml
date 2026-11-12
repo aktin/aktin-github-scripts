@@ -1,0 +1,28 @@
+# Reusable: full check of a uv project. Runs the language independent lint
+# from verify-base.yml, then ruff, mypy, pytest and the build, the server side
+# counterpart of hooks/lefthook-python.yml.
+name: verify-python
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  base:
+    uses: ./.github/workflows/verify-base.yml
+
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+      - run: uv sync --frozen
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run mypy
+      - run: uv run pytest
+      - run: uv build

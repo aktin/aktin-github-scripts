@@ -1,0 +1,31 @@
+# Reusable: full check of a bun project. Runs the language independent lint
+# from verify-base.yml, then format check, lint, typecheck, test and build,
+# the server side counterpart of hooks/lefthook-web.yml. Expects .bun-version
+# and the package.json scripts format:check, lint, typecheck, test and build.
+name: verify-web
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  base:
+    uses: ./.github/workflows/verify-base.yml
+
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run format:check
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run test
+      - run: bun run build

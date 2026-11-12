@@ -14,6 +14,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 - **dependency-review**: Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse
 - **codeql**: Runs CodeQL static analysis for the given languages and reports to the code scanning tab
 - **verify-base**: Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint
+- **verify-java**, **verify-web**, **verify-python**: Run verify-base plus the full check of one build tool (`./mvnw -B verify`, the bun scripts, or ruff, mypy, pytest and `uv build`). A project calls exactly one of them, or verify-base alone
 
 #### Usage:
 
