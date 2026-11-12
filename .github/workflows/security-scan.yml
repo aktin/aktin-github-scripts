@@ -1,0 +1,73 @@
+# Reusable: Trivy security scan, findings of severity HIGH and CRITICAL go to
+# the code scanning tab of the calling repository. Call it on a schedule.
+#
+# Job source scans the repository: secrets, misconfigurations (Dockerfiles,
+# compose and workflow files) and known vulnerabilities in lock files.
+# Job images scans published container images, one per entry of the input
+# images, and is skipped when the list is empty. Images must be public.
+#
+# The scan reports, it does not fail the run on findings.
+name: security-scan
+
+on:
+  workflow_call:
+    inputs:
+      images:
+        description: 'JSON array of image references to scan, for example ["ghcr.io/org/app:latest"]'
+        default: '[]'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Scan repository
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          format: sarif
+          output: trivy-source.sarif
+          exit-code: '0'
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@b7351df727350dca84cb9d725d57dcf5bc82ba26 # v3
+        with:
+          sarif_file: trivy-source.sarif
+          category: trivy-source
+
+  images:
+    if: ${{ inputs.images != '[]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(inputs.images) }}
+    steps:
+      - name: Scan image
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          scan-type: image
+          image-ref: ${{ matrix.image }}
+          severity: HIGH,CRITICAL
+          format: sarif
+          output: trivy-image.sarif
+          exit-code: '0'
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@b7351df727350dca84cb9d725d57dcf5bc82ba26 # v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image-${{ matrix.image }}
