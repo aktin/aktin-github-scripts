@@ -37,8 +37,10 @@ jobs:
 - **check_large_files.py**: Rejects staged files larger than 500 KB
 - **check_commit_size.py**: Rejects commits that change more than 200 lines in total (insertions plus deletions). Configure the limit with `--max-lines`
 - **check_commit_message.py**: Validates the commit message against the EU System Conventional Commit rules (`<type>(<scope>): <subject>`)
+- **gitleaks**: Scans the staged changes for secrets. Needs [gitleaks](https://github.com/gitleaks/gitleaks) on PATH
+- **actionlint**: Lints staged workflow files under `.github/workflows/`. Needs [actionlint](https://github.com/rhysd/actionlint) on PATH
 
-The hooks are plain Python scripts and need `python3` on PATH. Nothing is enforced in this repository, the hooks are an offer for other repositories.
+The `.py` hooks are plain Python scripts and need `python3` on PATH. gitleaks and actionlint are language independent commands, a missing tool fails the commit. Language specific linters stay in the `lefthook.yml` of each project. Nothing is enforced in this repository, the hooks are an offer for other repositories.
 
 #### Usage with lefthook:
 
