@@ -31,7 +31,10 @@ jobs:
       input1: 'value1'
       input2: 'value2'
     secrets:
-      my_s### Git Hooks:
+      my_secret: ${{ secrets.MY_SECRET }}
+```
+
+### Git Hooks:
 
 - **block_data_files.py**: Rejects staged data files (`.csv`, `.xlsx`, `.sql`, `.dcm`, `.hl7`, ...) outside `tests/fixtures/` to keep patient data out of the repository. Set other allowed path prefixes, comma separated, with the environment variable `DATA_FILE_ALLOWLIST`, for example `env: { DATA_FILE_ALLOWLIST: "src/resources/database/" }` on the script entry in `lefthook.yml`
 - **check_large_files.py**: Rejects staged files larger than 500 KB
@@ -61,8 +64,6 @@ Change `git_url` and `ref` to use another source or pin a version. `ref` must no
 #### Usage with pre-commit:
 
 Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder. Then install the hooks once with `pre-commit install`.
-
-oks once with `pre-commit install`.
 
 ### License:
 
