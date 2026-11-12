@@ -59,7 +59,18 @@ remotes:
     refetch_frequency: 24h
     configs:
       - hooks/lefthook.yml
+      - hooks/lefthook-java.yml # optional language profile
 ```
+
+The language profiles add lint, format and pre-push hooks for one build tool. Pick the one that fits, or none:
+
+| Profile | pre-commit | pre-push | Expects in the project |
+|---|---|---|---|
+| `hooks/lefthook-java.yml` | Spotless formats and Checkstyle lints the staged `*.java` files | `./mvnw -B verify` | Maven wrapper, Spotless and Checkstyle in the `pom.xml` |
+| `hooks/lefthook-web.yml` | ESLint fixes and Prettier formats the staged files | `bun run typecheck`, `bun run test`, `bun run build` | bun, ESLint and Prettier as dev dependencies, the three scripts in `package.json` |
+| `hooks/lefthook-python.yml` | `ruff format` and `ruff check --fix` on the staged `*.py` files | `uv run mypy`, `uv run pytest`, `uv build` | uv, ruff, mypy and pytest configured in `pyproject.toml` |
+
+The profiles only hold the hook calls. Rules and settings of the tools stay in the project.
 
 Change `git_url` and `ref` to use another source or pin a version. `ref` must not contain a slash, lefthook uses it as part of a directory name, so use tags or plain branch names. To adjust a hook, override its script entry in `lefthook-local.yml`, for example `args: "--max-lines=300"` for `check_commit_size.py`. The remote config sets `source_dir: hooks`, so projects that keep their own lefthook scripts in `.lefthook/` need to account for that.
 

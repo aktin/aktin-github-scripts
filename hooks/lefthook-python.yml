@@ -1,0 +1,23 @@
+# Language profile for uv projects, used next to hooks/lefthook.yml.
+# Expects ruff, mypy and pytest as dev dependencies, configured in the
+# pyproject.toml.
+
+pre-commit:
+  commands:
+    format:
+      glob: "*.py"
+      run: uv run ruff format {staged_files}
+      stage_fixed: true
+    lint:
+      glob: "*.py"
+      run: uv run ruff check --fix {staged_files}
+      stage_fixed: true
+
+pre-push:
+  commands:
+    typecheck:
+      run: uv run mypy
+    test:
+      run: uv run pytest
+    build:
+      run: uv build

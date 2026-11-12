@@ -1,0 +1,23 @@
+# Language profile for bun projects, used next to hooks/lefthook.yml.
+# Expects ESLint and Prettier as dev dependencies and the package.json scripts
+# typecheck, test and build.
+
+pre-commit:
+  commands:
+    lint:
+      glob: "*.{ts,vue,js,mjs,cjs}"
+      run: PATH="$HOME/.bun/bin:$PATH" bunx eslint --fix {staged_files}
+      stage_fixed: true
+    format:
+      glob: "*.{ts,vue,js,mjs,cjs,json,md,yml,yaml,css}"
+      run: PATH="$HOME/.bun/bin:$PATH" bunx prettier --write {staged_files}
+      stage_fixed: true
+
+pre-push:
+  commands:
+    typecheck:
+      run: PATH="$HOME/.bun/bin:$PATH" bun run typecheck
+    test:
+      run: PATH="$HOME/.bun/bin:$PATH" bun run test
+    build:
+      run: PATH="$HOME/.bun/bin:$PATH" bun run build

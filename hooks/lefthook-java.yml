@@ -1,0 +1,18 @@
+# Language profile for Maven projects, used next to hooks/lefthook.yml.
+# Expects the Maven wrapper in the project root and Spotless and Checkstyle
+# configured in the pom.xml.
+
+pre-commit:
+  commands:
+    format:
+      glob: "*.java"
+      run: ./mvnw -q spotless:apply -DspotlessFiles="$(printf '.*/%s,' {staged_files} | sed 's/,$//')"
+      stage_fixed: true
+    lint:
+      glob: "*.java"
+      run: ./mvnw -q checkstyle:check -Dcheckstyle.includes="$(for f in {staged_files}; do printf '**/%s,' "$(basename "$f")"; done | sed 's/,$//')"
+
+pre-push:
+  commands:
+    verify:
+      run: ./mvnw -B verify
