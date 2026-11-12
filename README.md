@@ -13,6 +13,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 - **maven-build-deploy**: Builds a Maven project, runs integration tests, and optionally deploys `.jar`/`.war`/`.ear` files to the AKTIN Maven repository
 - **dependency-review**: Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse
 - **codeql**: Runs CodeQL static analysis for the given languages and reports to the code scanning tab
+- **verify-base**: Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint
 
 #### Usage:
 
