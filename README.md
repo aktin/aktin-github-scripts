@@ -42,8 +42,10 @@ jobs:
 - **check_commit_message.py**: Validates the commit message against the EU System Conventional Commit rules (`<type>(<scope>): <subject>`)
 - **gitleaks**: Scans the staged changes for secrets. Needs [gitleaks](https://github.com/gitleaks/gitleaks) on PATH
 - **actionlint**: Lints staged workflow files under `.github/workflows/`. Needs [actionlint](https://github.com/rhysd/actionlint) on PATH
+- **hadolint**: Lints staged Dockerfiles, fails on findings of level error. Needs [hadolint](https://github.com/hadolint/hadolint) on PATH
+- **shellcheck**: Lints staged `*.sh` files, fails on findings of level warning or worse. Needs [shellcheck](https://www.shellcheck.net) on PATH
 
-The `.py` hooks are plain Python scripts and need `python3` on PATH. gitleaks and actionlint are language independent commands, a missing tool fails the commit. Language specific linters stay in the `lefthook.yml` of each project. Nothing is enforced in this repository, the hooks are an offer for other repositories.
+The `.py` hooks are plain Python scripts and need `python3` on PATH. A missing tool fails the commit. A hook with a file filter only runs when a matching file is staged, so a project without Dockerfiles never calls hadolint. Nothing is enforced in this repository, the hooks are an offer for other repositories.
 
 #### Usage with lefthook:
 
