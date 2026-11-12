@@ -11,6 +11,7 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 - **debian-build**: Builds a Debian package, runs integration tests, and uploads the `.deb` as a build artifact
 - **debian-deploy**: Retrieves the `.deb` build artifact and adds it to a remote Debian repository using `reprepro`
 - **maven-build-deploy**: Builds a Maven project, runs integration tests, and optionally deploys `.jar`/`.war`/`.ear` files to the AKTIN Maven repository
+- **dependency-review**: Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse
 
 #### Usage:
 
