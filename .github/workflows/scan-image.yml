@@ -1,0 +1,46 @@
+# scan-image: Trivy scan of published container images, one job per entry of
+# the input images. Findings of severity HIGH and CRITICAL go to the code
+# scanning tab of the calling repository. The scan reports, it does not fail
+# the run on findings.
+#
+# Call it:      on a schedule
+# Permissions:  contents: read, security-events: write
+# Expects:      public images
+name: scan-image
+
+on:
+  workflow_call:
+    inputs:
+      images:
+        description: 'JSON array of image references to scan, for example ["ghcr.io/org/app:latest"]'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(inputs.images) }}
+    steps:
+      - name: Scan image
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          scan-type: image
+          image-ref: ${{ matrix.image }}
+          severity: HIGH,CRITICAL
+          format: sarif
+          output: trivy-image.sarif
+          exit-code: '0'
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@b7351df727350dca84cb9d725d57dcf5bc82ba26 # v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image-${{ matrix.image }}
