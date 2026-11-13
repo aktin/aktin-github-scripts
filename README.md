@@ -36,7 +36,8 @@ image:
 # .github/workflows/release.yml
 on:
   push:
-    tags: [ 'v*' ]
+    tags:
+      - "v*"
 
 permissions:
   contents: read
@@ -51,7 +52,7 @@ jobs:
       id-token: write
       attestations: write
     uses: aktin/aktin-github-scripts/.github/workflows/build-java.yml@main
-  image:
+  images:
     needs: build
     permissions:
       contents: read
@@ -63,8 +64,8 @@ jobs:
       build-command: ./build.sh
       images: '["ghcr.io/aktin/my-app"]'
       release-files-path: release-files
-  release:
-    needs: image
+  publish:
+    needs: images
     permissions:
       contents: write
     uses: aktin/aktin-github-scripts/.github/workflows/publish-release.yml@main
