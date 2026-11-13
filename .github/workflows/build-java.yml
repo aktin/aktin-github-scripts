@@ -45,10 +45,10 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
         with:
           persist-credentials: false
-      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v5
         with:
           distribution: ${{ inputs.java-distribution }}
           java-version: ${{ inputs.java-version }}
@@ -63,7 +63,7 @@ jobs:
         run: echo "path=$(compgen -G "$ARTIFACT_PATH" | head -n 1)" >> "$GITHUB_OUTPUT"
       - name: Generate SBOM
         if: inputs.attest
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           file: ${{ steps.jar.outputs.path }}
           format: cyclonedx-json
@@ -71,7 +71,7 @@ jobs:
           upload-artifact: false
       - name: Attest build provenance
         if: inputs.attest
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: ${{ inputs.artifact-path }}
       - name: Attest SBOM
@@ -88,7 +88,7 @@ jobs:
           # shellcheck disable=SC2086
           cp $FILES release/
           if [[ -f sbom-java.cdx.json ]]; then cp sbom-java.cdx.json release/; fi
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-java
           path: release/*
