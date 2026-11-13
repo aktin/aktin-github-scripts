@@ -10,8 +10,7 @@
 #
 # Requires lefthook >= 2.0.5 (script args) and python3, gitleaks, actionlint,
 # hadolint and shellcheck on PATH. A missing tool fails the commit, it is not
-# skipped. A command with a glob only runs when a matching file is staged, so
-# a project without Dockerfiles never calls hadolint.
+# skipped. A command with a glob only runs when a matching file is staged.
 # Override a hook per project in lefthook-local.yml, for example:
 #   pre-commit:
 #     scripts:
