@@ -13,7 +13,8 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 - **maven-build-deploy**: Builds a Maven project, runs integration tests, and optionally deploys `.jar`/`.war`/`.ear` files to the AKTIN Maven repository
 - **dependency-review**: Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse
 - **codeql**: Runs CodeQL static analysis for the given languages and reports to the code scanning tab
-- **release-java**, **release-web**, **release-python**: Release on a version tag. Run the matching verify workflow, build the artifact with the version from the tag, generate release notes with git-cliff, an SBOM and build attestations, then publish a GitHub Release
+- **publish-release**: Publishes a GitHub Release for files built by an earlier job of the same run. Generates release notes with git-cliff, attests build provenance and the SBOM, then attaches the files and the SBOM. Expects the artifacts `release-files` and `release-sbom`
+- **release-java**, **release-web**, **release-python**: Release on a version tag. Run the matching verify workflow, build the artifact with the version from the tag, generate its SBOM, then call publish-release
 - **scorecard**: Runs the OpenSSF Scorecard analysis and publishes the result. Call it on push to the default branch and on a schedule
 - **security-scan**: Scans the repository for secrets, misconfigurations and vulnerable dependencies with Trivy, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab. Call it on a schedule
 - **verify-base**: Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint

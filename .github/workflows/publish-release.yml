@@ -1,0 +1,57 @@
+# Reusable: publishes a GitHub Release for files built by an earlier job of
+# the same run. Generates release notes with git-cliff (cliff.toml of the
+# calling repository), attests build provenance and the SBOM, then attaches
+# the files and the SBOM to the release. Call it on push of a tag v*.
+#
+# The earlier job must upload two artifacts: release-files with the files to
+# release and release-sbom with their SBOM as sbom.cdx.json. The calling job
+# must grant contents: write, id-token: write and attestations: write.
+name: publish-release
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Generate release notes
+        id: notes
+        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5 # v4
+        with:
+          config: cliff.toml
+          args: --latest --strip all
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-files
+          path: release-files
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-sbom
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-path: release-files/*
+      - name: Attest SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-path: release-files/*
+          sbom-path: sbom.cdx.json
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          body: ${{ steps.notes.outputs.content }}
+          files: |
+            release-files/*
+            sbom.cdx.json

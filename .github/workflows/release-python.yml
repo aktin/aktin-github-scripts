@@ -1,8 +1,7 @@
 # Reusable: release of a uv project on a version tag. Runs verify-python.yml,
-# builds the artifact with the version taken from the tag, generates release
-# notes with git-cliff (cliff.toml of the calling repository), an SBOM and
-# build attestations, then publishes a GitHub Release. Call it on push of a
-# tag v*. The calling job must grant contents: write, id-token: write and
+# builds the distributions with the version taken from the tag, generates
+# their SBOM and hands both to publish-release.yml. Call it on push of a tag
+# v*. The calling job must grant contents: write, id-token: write and
 # attestations: write.
 name: release-python
 
@@ -16,28 +15,17 @@ jobs:
   verify:
     uses: ./.github/workflows/verify-python.yml
 
-  release:
+  build:
     needs: verify
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
-          fetch-depth: 0
       - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
       - run: uv sync --frozen
       - name: Sync project version to tag
         run: uv version "${GITHUB_REF_NAME#v}"
-      - name: Generate release notes
-        id: notes
-        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5 # v4
-        with:
-          config: cliff.toml
-          args: --latest --strip all
       - name: Build distributions
         run: uv build
       - name: Generate SBOM
@@ -45,19 +33,22 @@ jobs:
         with:
           format: cyclonedx-json
           output-file: sbom.cdx.json
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+          upload-artifact: false
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          subject-path: dist/*
-      - name: Attest SBOM
-        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+          name: release-files
+          path: dist/*
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          subject-path: dist/*
-          sbom-path: sbom.cdx.json
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
-        with:
-          body: ${{ steps.notes.outputs.content }}
-          files: |
-            dist/*
-            sbom.cdx.json
+          name: release-sbom
+          path: sbom.cdx.json
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/publish-release.yml
