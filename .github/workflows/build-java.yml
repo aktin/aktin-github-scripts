@@ -1,8 +1,8 @@
-# Reusable: release of a Maven project on a version tag. Runs verify-java.yml,
-# builds the jar with the version taken from the tag, generates its SBOM and
-# hands both to publish-release.yml. Call it on push of a tag v*. The calling
-# job must grant contents: write, id-token: write and attestations: write.
-name: release-java
+# Reusable: builds the jar of a Maven project with the version taken from the
+# tag and generates its SBOM. Uploads the jar as artifact release-files and
+# the SBOM as artifact release-sbom, ready for publish-release.yml or
+# publish-image.yml. Call it on push of a tag v*.
+name: build-java
 
 on:
   workflow_call:
@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       artifact-path:
-        description: 'Glob of the built jar that is attested and attached to the release'
+        description: 'Glob of the built jar'
         default: 'app/target/*.jar'
         required: false
         type: string
@@ -27,14 +27,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
-    uses: ./.github/workflows/verify-java.yml
-    with:
-      java-version: ${{ inputs.java-version }}
-      java-distribution: ${{ inputs.java-distribution }}
-
   build:
-    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -64,16 +57,10 @@ jobs:
           name: release-files
           path: ${{ inputs.artifact-path }}
           if-no-files-found: error
+          retention-days: 1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-sbom
           path: sbom.cdx.json
           if-no-files-found: error
-
-  publish:
-    needs: build
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
-    uses: ./.github/workflows/publish-release.yml
+          retention-days: 1
