@@ -1,6 +1,7 @@
-# publish-image: runs the build script of the calling repository and pushes
-# the images it built to GHCR, with all tags and labels the script gave them.
-# Then signs each image with cosign, generates its SBOM and attests build
+# publish-image: publishes container images to GHCR. The calling repository
+# brings a build script that builds the images complete, with all tags and
+# labels. This workflow runs the script and pushes the images as they are,
+# then signs each image with cosign, generates its SBOM and attests build
 # provenance and the SBOM.
 #
 # Call it:      on push of a tag v*, or on a schedule to rebuild
@@ -11,9 +12,6 @@
 #               GITHUB_REF_NAME.
 # Hands over:   one artifact release-extras-<image> per image with its SBOM,
 #               kept for one day, so publish-release.yml attaches it
-#
-# The build script runs inside this workflow, because a later job cannot see
-# the images of an earlier one.
 #
 # Optional inputs:
 #   release-files-path    packages files of an earlier job (build-java.yml,
