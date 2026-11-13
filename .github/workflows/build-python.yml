@@ -1,7 +1,7 @@
 # build-python: builds the distributions of a uv project with the version
-# taken from the tag, generates their SBOM and attests build provenance and
-# the SBOM. The input attest set to false skips the SBOM and both
-# attestations.
+# taken from the tag, generates the SBOM of the runtime dependencies from
+# uv.lock and attests build provenance and the SBOM. The input attest set to
+# false skips the SBOM and both attestations.
 #
 # Call it:      on push of a tag v*
 # Permissions:  contents: read, id-token: write, attestations: write
@@ -42,11 +42,7 @@ jobs:
         run: uv build
       - name: Generate SBOM
         if: inputs.attest
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
-        with:
-          format: cyclonedx-json
-          output-file: sbom-python.cdx.json
-          upload-artifact: false
+        run: uv export --frozen --no-dev --format cyclonedx1.5 --output-file sbom-python.cdx.json
       - name: Attest build provenance
         if: inputs.attest
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
