@@ -1,8 +1,9 @@
-# publish-image: publishes container images to GHCR. The calling repository
-# brings a build script that builds the images complete, with all tags and
-# labels. This workflow runs the script and pushes the images as they are,
-# then signs each image with cosign, generates its SBOM and attests build
-# provenance and the SBOM.
+# build-publish-image: builds container images and publishes them to GHCR.
+# The calling repository brings a build script that builds the images
+# complete, with all tags and labels. This workflow runs the script and pushes
+# the images as they are, then signs each image with cosign, generates its
+# SBOM and attests build provenance and the SBOM. The input attest set to
+# false skips signature, SBOM and attestations.
 #
 # Call it:      on push of a tag v*, or on a schedule to rebuild
 # Permissions:  contents: read, packages: write, id-token: write,
@@ -10,23 +11,24 @@
 # Expects:      a build script that tags every image with its full name from
 #               the input images. The tag is available to it as
 #               GITHUB_REF_NAME.
-# Hands over:   one artifact release-extras-<image> per image with its SBOM,
-#               kept for one day, so publish-release.yml attaches it
+# Hands over:   one artifact release-<image> per image with its SBOM, kept
+#               for one day, so publish-release.yml attaches it
 #
 # Optional inputs:
 #   release-files-path    packages files of an earlier job (build-java.yml,
-#                         build-web.yml, build-python.yml). The artifact
-#                         release-files is downloaded to this path before the
-#                         build script runs.
+#                         build-web.yml, build-python.yml). The files of every
+#                         artifact whose name starts with release- are
+#                         downloaded to this path before the build script
+#                         runs.
 #   upload-release-files  hands files of the build script to the release, for
-#                         example a compose file. They are uploaded as
-#                         artifact release-files after the build. Use only one
-#                         of these two inputs, a run holds release-files once.
+#                         example a compose file. They get a build provenance
+#                         attestation and are uploaded as artifact
+#                         release-files after the build.
 #   cache-path and        keep downloads of the build script between runs.
 #   cache-key-files       The cache is only shared when a run on the default
 #                         branch has filled it. A cache written by a tag run
 #                         is not visible to other tags.
-name: publish-image
+name: build-publish-image
 
 on:
   workflow_call:
@@ -39,13 +41,18 @@ on:
         description: 'JSON array of the image names to push, without tag, for example ["ghcr.io/org/app"]'
         required: true
         type: string
+      attest:
+        description: 'Sign the images, generate their SBOM and attest build provenance and the SBOM'
+        default: true
+        required: false
+        type: boolean
       release-files-path:
-        description: 'Path that receives the artifact release-files before the build. Empty skips the download'
+        description: 'Path that receives the files of the release- artifacts before the build. Empty skips the download'
         default: ''
         required: false
         type: string
       upload-release-files:
-        description: 'Files the build script produced for the release, uploaded as artifact release-files. Empty skips the upload'
+        description: 'Files the build script produced for the release, attested and uploaded as artifact release-files. Empty skips the upload'
         default: ''
         required: false
         type: string
@@ -69,6 +76,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
     outputs:
       pushed: ${{ steps.push.outputs.pushed }}
     steps:
@@ -78,7 +87,8 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: inputs.release-files-path != ''
         with:
-          name: release-files
+          pattern: release-*
+          merge-multiple: true
           path: ${{ inputs.release-files-path }}
       - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         if: inputs.cache-path != ''
@@ -89,6 +99,11 @@ jobs:
         env:
           BUILD_COMMAND: ${{ inputs.build-command }}
         run: bash -euo pipefail -c "$BUILD_COMMAND"
+      - name: Attest build provenance of the release files
+        if: inputs.attest && inputs.upload-release-files != ''
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-path: ${{ inputs.upload-release-files }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: inputs.upload-release-files != ''
         with:
@@ -118,6 +133,7 @@ jobs:
 
   attest:
     needs: push
+    if: inputs.attest
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -153,7 +169,7 @@ jobs:
           upload-artifact: false
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: release-extras-${{ steps.name.outputs.name }}
+          name: release-${{ steps.name.outputs.name }}
           path: ${{ steps.name.outputs.name }}.sbom.cdx.json
           if-no-files-found: error
           retention-days: 1

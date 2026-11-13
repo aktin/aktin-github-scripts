@@ -1,16 +1,24 @@
 # build-python: builds the distributions of a uv project with the version
-# taken from the tag and generates their SBOM.
+# taken from the tag, generates their SBOM and attests build provenance and
+# the SBOM. The input attest set to false skips the SBOM and both
+# attestations.
 #
 # Call it:      on push of a tag v*
-# Permissions:  contents: read
+# Permissions:  contents: read, id-token: write, attestations: write
 # Expects:      uv.lock
-# Hands over:   artifact release-files (wheel and sdist) and artifact
-#               release-sbom (sbom.cdx.json), both kept for one day, for
-#               publish-release.yml or publish-image.yml
+# Hands over:   artifact release-python with wheel, sdist and
+#               sbom-python.cdx.json, kept for one day, for publish-release.yml
+#               or build-publish-image.yml
 name: build-python
 
 on:
   workflow_call:
+    inputs:
+      attest:
+        description: 'Generate the SBOM and attest build provenance and the SBOM'
+        default: true
+        required: false
+        type: boolean
 
 permissions:
   contents: read
@@ -18,6 +26,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -29,20 +41,31 @@ jobs:
       - name: Build distributions
         run: uv build
       - name: Generate SBOM
+        if: inputs.attest
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           format: cyclonedx-json
-          output-file: sbom.cdx.json
+          output-file: sbom-python.cdx.json
           upload-artifact: false
+      - name: Attest build provenance
+        if: inputs.attest
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-path: dist/*
+      - name: Attest SBOM
+        if: inputs.attest
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-path: dist/*
+          sbom-path: sbom-python.cdx.json
+      - name: Collect release files
+        run: |
+          mkdir release
+          cp dist/* release/
+          if [[ -f sbom-python.cdx.json ]]; then cp sbom-python.cdx.json release/; fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: release-files
-          path: dist/*
-          if-no-files-found: error
-          retention-days: 1
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: release-sbom
-          path: sbom.cdx.json
+          name: release-python
+          path: release/*
           if-no-files-found: error
           retention-days: 1

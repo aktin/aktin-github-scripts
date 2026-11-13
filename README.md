@@ -9,23 +9,23 @@ Reusable GitHub workflows and git hooks for the AKTIN repositories.
 
 ### Workflows:
 
-| Workflow            | What it does                                                                                                                                                                                                                                                 | Permissions of the calling job                                                |
-|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| `verify-common`     | Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint                                                                                                                                                 | `contents: read`                                                              |
-| `verify-java`       | Runs `verify-common` and `./mvnw -B verify`                                                                                                                                                                                                                  | `contents: read`                                                              |
-| `verify-web`        | Runs `verify-common`, then the bun scripts `format:check`, `lint`, `typecheck`, `test` and `build`                                                                                                                                                           | `contents: read`                                                              |
-| `verify-python`     | Runs `verify-common`, then ruff, mypy, pytest and `uv build`                                                                                                                                                                                                 | `contents: read`                                                              |
-| `build-java`        | Builds the jar of a Maven project with the version from the tag and generates its SBOM                                                                                                                                                                       | `contents: read`                                                              |
-| `build-web`         | Builds the web bundle of a bun project with the version from the tag, packs it as `.tgz` and generates its SBOM                                                                                                                                              | `contents: read`                                                              |
-| `build-python`      | Builds wheel and sdist of a uv project with the version from the tag and generates their SBOM                                                                                                                                                                | `contents: read`                                                              |
-| `publish-release`   | Writes release notes with git-cliff, attests the built files and publishes a GitHub Release with the files and their SBOMs attached. Runs after a `build-` workflow, which follows its `verify-` workflow                                                    | `contents: write`, `id-token: write`, `attestations: write`                   |
-| `publish-image`     | Runs the build script of the calling repository and pushes the images it built to GHCR. Signs each image, generates its SBOM and attests build provenance and the SBOM                                                                                       | `contents: read`, `packages: write`, `id-token: write`, `attestations: write` |
-| `scan-codeql`       | Runs CodeQL static analysis for the given languages and reports to the code scanning tab                                                                                                                                                                     | `actions: read`, `contents: read`, `security-events: write`                   |
-| `scan-dependencies` | Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse and comments the findings in the pull request                                                                                                              | `contents: read`, `pull-requests: write`                                      |
-| `scan-scorecard`    | Runs the OpenSSF Scorecard analysis and publishes the result                                                                                                                                                                                                 | `contents: read`, `security-events: write`, `id-token: write`                 |
-| `scan-security`     | Scans the repository with Trivy for secrets, misconfigurations and vulnerable dependencies, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab, the run does not fail on findings | `contents: read`, `security-events: write`                                    |
+| Workflow              | What it does                                                                                                                                                                                                                                                 | Permissions of the calling job                                                |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| `verify-common`       | Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint                                                                                                                                                 | `contents: read`                                                              |
+| `verify-java`         | Runs `verify-common` and `./mvnw -B verify`                                                                                                                                                                                                                  | `contents: read`                                                              |
+| `verify-web`          | Runs `verify-common`, then the bun scripts `format:check`, `lint`, `typecheck`, `test` and `build`                                                                                                                                                           | `contents: read`                                                              |
+| `verify-python`       | Runs `verify-common`, then ruff, mypy, pytest and `uv build`                                                                                                                                                                                                 | `contents: read`                                                              |
+| `build-java`          | Builds the jar of a Maven project with the version from the tag, generates its SBOM and attests both                                                                                                                                                         | `contents: read`, `id-token: write`, `attestations: write`                    |
+| `build-web`           | Builds the web bundle of a bun project with the version from the tag, packs it as `.tgz`, generates its SBOM and attests both                                                                                                                                | `contents: read`, `id-token: write`, `attestations: write`                    |
+| `build-python`        | Builds wheel and sdist of a uv project with the version from the tag, generates their SBOM and attests both                                                                                                                                                  | `contents: read`, `id-token: write`, `attestations: write`                    |
+| `build-publish-image` | Runs the build script of the calling repository and pushes the images it built to GHCR. Signs each image, generates its SBOM and attests build provenance and the SBOM                                                                                       | `contents: read`, `packages: write`, `id-token: write`, `attestations: write` |
+| `publish-release`     | Writes release notes with git-cliff and publishes a GitHub Release with the files of all `build-` jobs of the run attached. Runs after a `build-` workflow, which follows its `verify-` workflow                                                             | `contents: write`                                                             |
+| `scan-codeql`         | Runs CodeQL static analysis for the given languages and reports to the code scanning tab                                                                                                                                                                     | `actions: read`, `contents: read`, `security-events: write`                   |
+| `scan-dependencies`   | Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse and comments the findings in the pull request                                                                                                              | `contents: read`, `pull-requests: write`                                      |
+| `scan-scorecard`      | Runs the OpenSSF Scorecard analysis and publishes the result                                                                                                                                                                                                 | `contents: read`, `security-events: write`, `id-token: write`                 |
+| `scan-security`       | Scans the repository with Trivy for secrets, misconfigurations and vulnerable dependencies, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab, the run does not fail on findings | `contents: read`, `security-events: write`                                    |
 
-A project calls exactly one of `verify-java`, `verify-web` and `verify-python`, or `verify-common` alone. Inputs and requirements of each workflow are described in the comment at the top of its file.
+A project calls the verify workflow of each build tool it uses, or `verify-common` alone. A release with several build tools runs their `build-` workflows side by side and one `publish-release` after them. Every `build-` workflow takes the input `attest`. Set to `false` it skips the SBOM and the attestations. Inputs and requirements of each workflow are described in the comment at the top of its file.
 
 #### Usage:
 
@@ -46,6 +46,10 @@ jobs:
     uses: aktin/aktin-github-scripts/.github/workflows/verify-java.yml@main
   build:
     needs: verify
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     uses: aktin/aktin-github-scripts/.github/workflows/build-java.yml@main
   image:
     needs: build
@@ -54,7 +58,7 @@ jobs:
       packages: write
       id-token: write
       attestations: write
-    uses: aktin/aktin-github-scripts/.github/workflows/publish-image.yml@main
+    uses: aktin/aktin-github-scripts/.github/workflows/build-publish-image.yml@main
     with:
       build-command: ./build.sh
       images: '["ghcr.io/aktin/my-app"]'
@@ -63,8 +67,6 @@ jobs:
     needs: image
     permissions:
       contents: write
-      id-token: write
-      attestations: write
     uses: aktin/aktin-github-scripts/.github/workflows/publish-release.yml@main
 ```
 

@@ -1,19 +1,12 @@
-# publish-release: publishes a GitHub Release for files built by earlier jobs
-# of the same run. Writes the release notes with git-cliff, attests the files
-# and attaches them to the release.
+# publish-release: publishes a GitHub Release with the files of earlier jobs
+# of the same run attached. Writes the release notes with git-cliff.
 #
-# Call it:      on push of a tag v*, after the jobs that build the files
-# Permissions:  contents: write, id-token: write, attestations: write
+# Call it:      on push of a tag v*, after the jobs that produce the files
+# Permissions:  contents: write
 # Expects:      cliff.toml in the repository root
-# Takes:        the artifacts of the run whose name starts with release-.
-#               Which ones exist decides what happens:
-#                 release-files    required. Attached with a build provenance
-#                                  attestation.
-#                 release-sbom     optional, holds sbom.cdx.json. Attached and
-#                                  attested as the SBOM of release-files.
-#                 release-extras*  optional, any artifact whose name starts
-#                                  with release-extras. Attached as they are,
-#                                  without attestation.
+# Takes:        every artifact of the run whose name starts with release-.
+#               All files in them are attached to the release. The job that
+#               uploads an artifact attests its files.
 name: publish-release
 
 on:
@@ -27,8 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
-      attestations: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -43,21 +34,8 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: release-*
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
-        with:
-          subject-path: release-files/*
-      - name: Attest SBOM
-        if: hashFiles('release-sbom/sbom.cdx.json') != ''
-        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
-        with:
-          subject-path: release-files/*
-          sbom-path: release-sbom/sbom.cdx.json
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           body: ${{ steps.notes.outputs.content }}
-          files: |
-            release-files/*
-            release-sbom/*
-            release-extras*/*
+          files: release-*/*

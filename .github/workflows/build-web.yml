@@ -1,17 +1,24 @@
 # build-web: builds the web bundle of a bun project with the version taken
-# from the tag, packs it as <repository>-web-<tag>.tgz and generates its SBOM.
+# from the tag, packs it as <repository>-web-<tag>.tgz, generates its SBOM and
+# attests build provenance and the SBOM. The input attest set to false skips
+# the SBOM and both attestations.
 #
 # Call it:      on push of a tag v*
-# Permissions:  contents: read
+# Permissions:  contents: read, id-token: write, attestations: write
 # Expects:      .bun-version and the package.json script build
-# Hands over:   artifact release-files (the packed bundle) and artifact
-#               release-sbom (sbom.cdx.json), both kept for one day, for
-#               publish-release.yml or publish-image.yml
+# Hands over:   artifact release-web with the packed bundle and
+#               sbom-web.cdx.json, kept for one day, for publish-release.yml or
+#               build-publish-image.yml
 name: build-web
 
 on:
   workflow_call:
     inputs:
+      attest:
+        description: 'Generate the SBOM and attest build provenance and the SBOM'
+        default: true
+        required: false
+        type: boolean
       dist-dir:
         description: 'Directory with the built web bundle'
         default: 'apps/web/dist'
@@ -24,6 +31,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -41,20 +52,31 @@ jobs:
           DIST_DIR: ${{ inputs.dist-dir }}
         run: tar -czf "${GITHUB_REPOSITORY#*/}-web-${GITHUB_REF_NAME}.tgz" -C "$DIST_DIR" .
       - name: Generate SBOM
+        if: inputs.attest
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           format: cyclonedx-json
-          output-file: sbom.cdx.json
+          output-file: sbom-web.cdx.json
           upload-artifact: false
+      - name: Attest build provenance
+        if: inputs.attest
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-path: ${{ github.event.repository.name }}-web-${{ github.ref_name }}.tgz
+      - name: Attest SBOM
+        if: inputs.attest
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-path: ${{ github.event.repository.name }}-web-${{ github.ref_name }}.tgz
+          sbom-path: sbom-web.cdx.json
+      - name: Collect release files
+        run: |
+          mkdir release
+          cp "${GITHUB_REPOSITORY#*/}-web-${GITHUB_REF_NAME}.tgz" release/
+          if [[ -f sbom-web.cdx.json ]]; then cp sbom-web.cdx.json release/; fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: release-files
-          path: ${{ github.event.repository.name }}-web-${{ github.ref_name }}.tgz
-          if-no-files-found: error
-          retention-days: 1
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: release-sbom
-          path: sbom.cdx.json
+          name: release-web
+          path: release/*
           if-no-files-found: error
           retention-days: 1

@@ -1,18 +1,23 @@
 # build-java: builds the jar of a Maven project with the version taken from
-# the tag and generates its SBOM.
+# the tag, generates its SBOM and attests build provenance and the SBOM. The
+# input attest set to false skips the SBOM and both attestations.
 #
 # Call it:      on push of a tag v*
-# Permissions:  contents: read
+# Permissions:  contents: read, id-token: write, attestations: write
 # Expects:      the Maven wrapper, and a pom.xml that takes its version from
 #               the property revision
-# Hands over:   artifact release-files (the jar) and artifact release-sbom
-#               (sbom.cdx.json), both kept for one day, for publish-release.yml
-#               or publish-image.yml
+# Hands over:   artifact release-java with the jar and sbom-java.cdx.json,
+#               kept for one day, for publish-release.yml or build-publish-image.yml
 name: build-java
 
 on:
   workflow_call:
     inputs:
+      attest:
+        description: 'Generate the SBOM and attest build provenance and the SBOM'
+        default: true
+        required: false
+        type: boolean
       java-version:
         description: 'Java version'
         default: '25'
@@ -35,6 +40,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -47,26 +56,41 @@ jobs:
       - name: Build application jar
         run: ./mvnw -B -DskipTests -Drevision="${GITHUB_REF_NAME#v}" package
       - name: Locate built jar
+        if: inputs.attest
         id: jar
         env:
           ARTIFACT_PATH: ${{ inputs.artifact-path }}
         run: echo "path=$(compgen -G "$ARTIFACT_PATH" | head -n 1)" >> "$GITHUB_OUTPUT"
       - name: Generate SBOM
+        if: inputs.attest
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           file: ${{ steps.jar.outputs.path }}
           format: cyclonedx-json
-          output-file: sbom.cdx.json
+          output-file: sbom-java.cdx.json
           upload-artifact: false
+      - name: Attest build provenance
+        if: inputs.attest
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-path: ${{ inputs.artifact-path }}
+      - name: Attest SBOM
+        if: inputs.attest
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-path: ${{ inputs.artifact-path }}
+          sbom-path: sbom-java.cdx.json
+      - name: Collect release files
+        env:
+          FILES: ${{ inputs.artifact-path }}
+        run: |
+          mkdir release
+          # shellcheck disable=SC2086
+          cp $FILES release/
+          if [[ -f sbom-java.cdx.json ]]; then cp sbom-java.cdx.json release/; fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: release-files
-          path: ${{ inputs.artifact-path }}
-          if-no-files-found: error
-          retention-days: 1
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: release-sbom
-          path: sbom.cdx.json
+          name: release-java
+          path: release/*
           if-no-files-found: error
           retention-days: 1
