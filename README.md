@@ -1,9 +1,9 @@
 ## aktin-github-scripts
-Shared building blocks for the AKTIN repositories: reusable GitHub workflows and git hooks. A repository calls them instead of keeping its own copy, so checks and releases work the same way everywhere.
+Reusable GitHub workflows and git hooks for the AKTIN repositories.
 
 ### Folder Structure:
 
-- **.github/workflows/**: Reusable GitHub workflows. GitHub does not allow subfolders here, so the file name prefix groups them.
+- **.github/workflows/**: Reusable GitHub workflows.
 - **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev), plus an example configuration for the pre-commit framework.
 
 ### Workflows:
@@ -22,7 +22,7 @@ The prefix names the responsibility: `verify-` checks, `build-` produces files, 
 | `publish-release` | tag `v*` | Writes release notes with git-cliff, attests the built files and publishes a GitHub Release with the files and their SBOMs attached | `contents: write`, `id-token: write`, `attestations: write` |
 | `publish-image` | tag `v*`, schedule | Runs the build script of the calling repository and pushes the images it built to GHCR. Signs each image, generates its SBOM and attests build provenance and the SBOM | `contents: read`, `packages: write`, `id-token: write`, `attestations: write` |
 | `scan-codeql` | pull request, push to the default branch | Runs CodeQL static analysis for the given languages and reports to the code scanning tab | `actions: read`, `contents: read`, `security-events: write` |
-| `scan-dependencies` | pull request | Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse | `contents: read` |
+| `scan-dependencies` | pull request | Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse and comments the findings in the pull request | `contents: read`, `pull-requests: write` |
 | `scan-scorecard` | push to the default branch, schedule | Runs the OpenSSF Scorecard analysis and publishes the result | `contents: read`, `security-events: write`, `id-token: write` |
 | `scan-security` | schedule | Scans the repository with Trivy for secrets, misconfigurations and vulnerable dependencies, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab, the run does not fail on findings | `contents: read`, `security-events: write` |
 
@@ -30,7 +30,7 @@ A project calls exactly one of `verify-java`, `verify-web` and `verify-python`, 
 
 #### How the release workflows pass files on:
 
-`build-` and `publish-` workflows run as separate jobs of one run and hand files over as artifacts with fixed names. The artifacts are kept for one day, the release and the registry hold the permanent copies.
+`build-` and `publish-` workflows run as separate jobs of one run and hand files over as artifacts with fixed names. The artifacts are kept for one day.
 
 | Artifact | Uploaded by | Used by |
 |---|---|---|
@@ -122,7 +122,7 @@ Change `git_url` and `ref` to use another source or pin a version. `ref` must no
 
 #### Usage with pre-commit:
 
-Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. Adjust the `entry` paths if you rename the folder. Then install the hooks once with `pre-commit install`.
+Copy the `hooks/` folder into your repository and use `hooks/pre-commit-config.example.yaml` as your `.pre-commit-config.yaml`. The example holds the four `.py` hooks. Adjust the `entry` paths if you rename the folder. Then install the hooks once with `pre-commit install`.
 
 ### License:
 
