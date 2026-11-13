@@ -8,17 +8,53 @@ This repository contains a collection of custom GitHub Actions and Github Workfl
 
 ### Workflows:
 
-- **debian-build**: Builds a Debian package, runs integration tests, and uploads the `.deb` as a build artifact
-- **debian-deploy**: Retrieves the `.deb` build artifact and adds it to a remote Debian repository using `reprepro`
-- **maven-build-deploy**: Builds a Maven project, runs integration tests, and optionally deploys `.jar`/`.war`/`.ear` files to the AKTIN Maven repository
-- **dependency-review**: Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse
-- **codeql**: Runs CodeQL static analysis for the given languages and reports to the code scanning tab
+- **verify-common**: Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint
+- **verify-java**, **verify-web**, **verify-python**: Run verify-common plus the full check of one build tool (`./mvnw -B verify`, the bun scripts, or ruff, mypy, pytest and `uv build`). A project calls exactly one of them, or verify-common alone
+- **build-java**, **build-web**, **build-python**: Build the artifact of one build tool with the version from the tag and generate its SBOM. Upload the artifact as `release-files` and the SBOM as `release-sbom`
 - **publish-release**: Publishes a GitHub Release for files built by an earlier job of the same run. Generates release notes with git-cliff, attests build provenance and the SBOM, then attaches the files and the SBOM. Expects the artifacts `release-files` and `release-sbom`
-- **release-java**, **release-web**, **release-python**: Release on a version tag. Run the matching verify workflow, build the artifact with the version from the tag, generate its SBOM, then call publish-release
-- **scorecard**: Runs the OpenSSF Scorecard analysis and publishes the result. Call it on push to the default branch and on a schedule
-- **security-scan**: Scans the repository for secrets, misconfigurations and vulnerable dependencies with Trivy, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab. Call it on a schedule
-- **verify-base**: Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint
-- **verify-java**, **verify-web**, **verify-python**: Run verify-base plus the full check of one build tool (`./mvnw -B verify`, the bun scripts, or ruff, mypy, pytest and `uv build`). A project calls exactly one of them, or verify-base alone
+- **publish-image**: Runs the build script of the calling repository and pushes the images it built to GHCR, with the tags and labels the script gave them. Signs each image, generates its SBOM and attests build provenance and the SBOM. Optionally downloads `release-files` before the build script runs
+- **scan-codeql**: Runs CodeQL static analysis for the given languages and reports to the code scanning tab
+- **scan-dependencies**: Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse
+- **scan-scorecard**: Runs the OpenSSF Scorecard analysis and publishes the result. Call it on push to the default branch and on a schedule
+- **scan-security**: Scans the repository for secrets, misconfigurations and vulnerable dependencies with Trivy, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab. Call it on a schedule
+
+The prefix names the responsibility: `verify-` checks, `build-` produces files, `publish-` releases them, `scan-` analyses. A release combines them as jobs, for example a jar that is attached to a GitHub Release and packaged into an image:
+
+```yaml
+# .github/workflows/release.yml
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    uses: aktin/aktin-github-scripts/.github/workflows/verify-java.yml@main
+  build:
+    needs: verify
+    uses: aktin/aktin-github-scripts/.github/workflows/build-java.yml@main
+  release:
+    needs: build
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    uses: aktin/aktin-github-scripts/.github/workflows/publish-release.yml@main
+  image:
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: aktin/aktin-github-scripts/.github/workflows/publish-image.yml@main
+    with:
+      build-command: ./build.sh
+      images: '["ghcr.io/aktin/my-app"]'
+      release-files-path: release-files
+```
 
 #### Usage:
 
