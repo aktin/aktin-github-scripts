@@ -1,8 +1,10 @@
 # Reusable: pushes container images that the build script of the calling
 # repository has built, with all tags and labels the script gave them. Then
 # signs each image with cosign, generates its SBOM and attests build
-# provenance and the SBOM. Call it on push of a tag v*. The calling job must
-# grant packages: write, id-token: write and attestations: write.
+# provenance and the SBOM. Each SBOM is also uploaded as artifact
+# release-extras-<image>, so publish-release.yml attaches it to the release.
+# The calling job must grant packages: write, id-token: write and
+# attestations: write.
 #
 # The build script runs inside this workflow, because a later job cannot see
 # the images of an earlier one. It must tag every image with its full name
@@ -133,13 +135,24 @@ jobs:
           IMAGE: ${{ matrix.image }}
           DIGEST: ${{ matrix.digest }}
         run: cosign sign --yes "${IMAGE}@${DIGEST}"
+      - name: Derive SBOM file name
+        id: name
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: echo "name=${IMAGE##*/}" >> "$GITHUB_OUTPUT"
       - name: Generate SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: ${{ matrix.image }}@${{ matrix.digest }}
           format: cyclonedx-json
-          output-file: sbom.cdx.json
+          output-file: ${{ steps.name.outputs.name }}.sbom.cdx.json
           upload-artifact: false
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-extras-${{ steps.name.outputs.name }}
+          path: ${{ steps.name.outputs.name }}.sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 1
       - name: Attest build provenance
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
         with:
@@ -150,4 +163,4 @@ jobs:
         with:
           subject-name: ${{ matrix.image }}
           subject-digest: ${{ matrix.digest }}
-          sbom-path: sbom.cdx.json
+          sbom-path: ${{ steps.name.outputs.name }}.sbom.cdx.json

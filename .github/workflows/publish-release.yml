@@ -9,7 +9,8 @@
 #   release-files   required. Attached with a build provenance attestation.
 #   release-sbom    optional, holds sbom.cdx.json. Attached and attested as
 #                   the SBOM of the files in release-files.
-#   release-extras  optional. Attached as they are, without attestation.
+#   release-extras  optional, also any artifact whose name starts with
+#                   release-extras. Attached as they are, without attestation.
 name: publish-release
 
 on:
@@ -56,4 +57,4 @@ jobs:
           files: |
             release-files/*
             release-sbom/*
-            release-extras/*
+            release-extras*/*
