@@ -91,7 +91,7 @@ Leave out the job `image` to release only the jar, then `release` needs `build`.
 - **hadolint**: Lints staged Dockerfiles, fails on findings of level error. Needs [hadolint](https://github.com/hadolint/hadolint) on PATH
 - **shellcheck**: Lints staged `*.sh` files, fails on findings of level warning or worse. Needs [shellcheck](https://www.shellcheck.net) on PATH
 
-The `.py` hooks are plain Python scripts and need `python3` on PATH. A missing tool fails the commit. A hook with a file filter only runs when a matching file is staged, so a project without Dockerfiles never calls hadolint. Nothing is enforced in this repository, the hooks are an offer for other repositories.
+The `.py` hooks are plain Python scripts and need `python3` on PATH. A missing tool fails the commit. A hook with a file filter only runs when a matching file is staged.
 
 #### Usage with lefthook:
 
@@ -118,7 +118,7 @@ The language profiles add lint, format and pre-push hooks for one build tool. Pi
 
 The profiles only hold the hook calls. Rules and settings of the tools stay in the project.
 
-Change `git_url` and `ref` to use another source or pin a version. `ref` must not contain a slash, lefthook uses it as part of a directory name, so use tags or plain branch names. To adjust a hook, override its script entry in `lefthook-local.yml`, for example `args: "--max-lines=300"` for `check_commit_size.py`. The remote config sets `source_dir: hooks`, so projects that keep their own lefthook scripts in `.lefthook/` need to account for that.
+Change `git_url` and `ref` to use another source or pin a version. `ref` must not contain a slash, so use tags or plain branch names. To adjust a hook, override its script entry in `lefthook-local.yml`, for example `args: "--max-lines=300"` for `check_commit_size.py`. The remote config sets `source_dir: hooks`, so projects that keep their own lefthook scripts in `.lefthook/` need to account for that.
 
 #### Usage with pre-commit:
 
