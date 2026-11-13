@@ -1,24 +1,46 @@
 ## aktin-github-scripts
-This repository contains a collection of custom GitHub Actions and Github Workflows to automate various tasks. These scripts can be used in your GitHub repository to streamline your development and deployment processes.
+Shared building blocks for the AKTIN repositories: reusable GitHub workflows and git hooks. A repository calls them instead of keeping its own copy, so checks and releases work the same way everywhere.
 
 ### Folder Structure:
 
-- **workflows/**: Contains reusable GitHub workflow files.
-- **hooks/**: Contains shared git hooks for [lefthook](https://lefthook.dev), plus an example configuration for the pre-commit framework.
+- **.github/workflows/**: Reusable GitHub workflows. GitHub does not allow subfolders here, so the file name prefix groups them.
+- **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev), plus an example configuration for the pre-commit framework.
 
 ### Workflows:
 
-- **verify-common**: Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint
-- **verify-java**, **verify-web**, **verify-python**: Run verify-common plus the full check of one build tool (`./mvnw -B verify`, the bun scripts, or ruff, mypy, pytest and `uv build`). A project calls exactly one of them, or verify-common alone
-- **build-java**, **build-web**, **build-python**: Build the artifact of one build tool with the version from the tag and generate its SBOM. Upload the artifact as `release-files` and the SBOM as `release-sbom`
-- **publish-release**: Publishes a GitHub Release for files built by an earlier job of the same run. Generates release notes with git-cliff, attests build provenance and the SBOM, then attaches the files and the SBOM. Takes the artifact `release-files`, optionally `release-sbom` and, for files that are attached without attestation, any artifact starting with `release-extras`
-- **publish-image**: Runs the build script of the calling repository and pushes the images it built to GHCR, with the tags and labels the script gave them. Signs each image, generates its SBOM and attests build provenance and the SBOM. Uploads each SBOM as `release-extras-<image>` for publish-release. Optionally downloads `release-files` before the build script runs, uploads files of the build script as `release-files` and caches a download directory
-- **scan-codeql**: Runs CodeQL static analysis for the given languages and reports to the code scanning tab
-- **scan-dependencies**: Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse
-- **scan-scorecard**: Runs the OpenSSF Scorecard analysis and publishes the result. Call it on push to the default branch and on a schedule
-- **scan-security**: Scans the repository for secrets, misconfigurations and vulnerable dependencies with Trivy, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab. Call it on a schedule
+The prefix names the responsibility: `verify-` checks, `build-` produces files, `publish-` releases them, `scan-` analyses.
 
-The prefix names the responsibility: `verify-` checks, `build-` produces files, `publish-` releases them, `scan-` analyses. A release combines them as jobs, for example a jar that is attached to a GitHub Release and packaged into an image:
+| Workflow | Call it on | What it does | Permissions of the calling job |
+|---|---|---|---|
+| `verify-common` | pull request, push to the default branch | Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint | `contents: read` |
+| `verify-java` | pull request, push to the default branch | Runs `verify-common` and `./mvnw -B verify` | `contents: read` |
+| `verify-web` | pull request, push to the default branch | Runs `verify-common`, then the bun scripts `format:check`, `lint`, `typecheck`, `test` and `build` | `contents: read` |
+| `verify-python` | pull request, push to the default branch | Runs `verify-common`, then ruff, mypy, pytest and `uv build` | `contents: read` |
+| `build-java` | tag `v*` | Builds the jar of a Maven project with the version from the tag and generates its SBOM | `contents: read` |
+| `build-web` | tag `v*` | Builds the web bundle of a bun project with the version from the tag, packs it as `.tgz` and generates its SBOM | `contents: read` |
+| `build-python` | tag `v*` | Builds wheel and sdist of a uv project with the version from the tag and generates their SBOM | `contents: read` |
+| `publish-release` | tag `v*` | Writes release notes with git-cliff, attests the built files and publishes a GitHub Release with the files and their SBOMs attached | `contents: write`, `id-token: write`, `attestations: write` |
+| `publish-image` | tag `v*`, schedule | Runs the build script of the calling repository and pushes the images it built to GHCR. Signs each image, generates its SBOM and attests build provenance and the SBOM | `contents: read`, `packages: write`, `id-token: write`, `attestations: write` |
+| `scan-codeql` | pull request, push to the default branch | Runs CodeQL static analysis for the given languages and reports to the code scanning tab | `actions: read`, `contents: read`, `security-events: write` |
+| `scan-dependencies` | pull request | Blocks a pull request that adds a dependency with a known vulnerability of severity high or worse | `contents: read` |
+| `scan-scorecard` | push to the default branch, schedule | Runs the OpenSSF Scorecard analysis and publishes the result | `contents: read`, `security-events: write`, `id-token: write` |
+| `scan-security` | schedule | Scans the repository with Trivy for secrets, misconfigurations and vulnerable dependencies, optionally also a list of published container images. Reports findings of severity HIGH and CRITICAL to the code scanning tab, the run does not fail on findings | `contents: read`, `security-events: write` |
+
+A project calls exactly one of `verify-java`, `verify-web` and `verify-python`, or `verify-common` alone. Inputs and requirements of each workflow are described in the comment at the top of its file.
+
+#### How the release workflows pass files on:
+
+`build-` and `publish-` workflows run as separate jobs of one run and hand files over as artifacts with fixed names. The artifacts are kept for one day, the release and the registry hold the permanent copies.
+
+| Artifact | Uploaded by | Used by |
+|---|---|---|
+| `release-files` | `build-java`, `build-web`, `build-python`, or `publish-image` with the input `upload-release-files` | `publish-release` attests the files and attaches them to the release. `publish-image` with the input `release-files-path` puts them where the build script packages them into an image |
+| `release-sbom` | `build-java`, `build-web`, `build-python` | `publish-release` attests it as the SBOM of `release-files` and attaches it. Without it the release is published without an SBOM |
+| `release-extras-<image>` | `publish-image`, one per image with its SBOM | `publish-release` attaches every artifact whose name starts with `release-extras`, without attestation |
+
+#### Usage:
+
+Reference a workflow file inside `.github/workflows/` as a job. `@main` follows this repository, a commit SHA pins a version. This release attaches a jar to a GitHub Release and packages it into an image:
 
 ```yaml
 # .github/workflows/release.yml
@@ -35,13 +57,6 @@ jobs:
   build:
     needs: verify
     uses: aktin/aktin-github-scripts/.github/workflows/build-java.yml@main
-  release:
-    needs: build
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
-    uses: aktin/aktin-github-scripts/.github/workflows/publish-release.yml@main
   image:
     needs: build
     permissions:
@@ -54,29 +69,16 @@ jobs:
       build-command: ./build.sh
       images: '["ghcr.io/aktin/my-app"]'
       release-files-path: release-files
+  release:
+    needs: image
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    uses: aktin/aktin-github-scripts/.github/workflows/publish-release.yml@main
 ```
 
-#### Usage:
-
-To use a reusable GitHub workflow from this repository, reference the workflow file inside `.github/workflows/`.
-
-```yaml
-# .github/workflows/my-workflow.yml
-name: My Workflow
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  call-reusable-workflow:
-    uses: aktin/aktin-github-scripts/.github/workflows/workflow1.yml@main
-    with:
-      input1: 'value1'
-      input2: 'value2'
-    secrets:
-      my_secret: ${{ secrets.MY_SECRET }}
-```
+Leave out the job `image` to release only the jar, then `release` needs `build`.
 
 ### Git Hooks:
 
