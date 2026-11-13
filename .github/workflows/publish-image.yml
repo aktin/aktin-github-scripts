@@ -1,0 +1,117 @@
+# Reusable: pushes container images that the build script of the calling
+# repository has built, with all tags and labels the script gave them. Then
+# signs each image with cosign, generates its SBOM and attests build
+# provenance and the SBOM. Call it on push of a tag v*. The calling job must
+# grant packages: write, id-token: write and attestations: write.
+#
+# The build script runs inside this workflow, because a later job cannot see
+# the images of an earlier one. It must tag every image with its full name
+# from the input images. The tag is available to it as GITHUB_REF_NAME.
+#
+# To package files built by an earlier job of the same run (build-java.yml,
+# build-web.yml, build-python.yml), set release-files-path. The artifact
+# release-files is then downloaded to that path before the build script runs.
+name: publish-image
+
+on:
+  workflow_call:
+    inputs:
+      build-command:
+        description: 'Command that builds and tags the images, run from the repository root, for example ./build.sh'
+        required: true
+        type: string
+      images:
+        description: 'JSON array of the image names to push, without tag, for example ["ghcr.io/org/app"]'
+        required: true
+        type: string
+      release-files-path:
+        description: 'Path that receives the artifact release-files before the build. Empty skips the download'
+        default: ''
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      pushed: ${{ steps.push.outputs.pushed }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: inputs.release-files-path != ''
+        with:
+          name: release-files
+          path: ${{ inputs.release-files-path }}
+      - name: Build images
+        env:
+          BUILD_COMMAND: ${{ inputs.build-command }}
+        run: bash -euo pipefail -c "$BUILD_COMMAND"
+      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push images and collect digests
+        id: push
+        env:
+          IMAGES: ${{ inputs.images }}
+        run: |
+          set -euo pipefail
+          pushed='[]'
+          for image in $(jq -r '.[]' <<< "$IMAGES"); do
+            docker push --all-tags "$image"
+            tagged="$(docker images --format '{{.Repository}}:{{.Tag}}' "$image" | head -n 1)"
+            digest="$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$tagged" | grep "^${image}@" | head -n 1 | cut -d'@' -f2)"
+            pushed="$(jq -c --arg image "$image" --arg digest "$digest" '. + [{image: $image, digest: $digest}]' <<< "$pushed")"
+          done
+          echo "pushed=${pushed}" >> "$GITHUB_OUTPUT"
+
+  attest:
+    needs: push
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.push.outputs.pushed) }}
+    steps:
+      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+      - name: Sign image
+        env:
+          IMAGE: ${{ matrix.image }}
+          DIGEST: ${{ matrix.digest }}
+        run: cosign sign --yes "${IMAGE}@${DIGEST}"
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          image: ${{ matrix.image }}@${{ matrix.digest }}
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+          upload-artifact: false
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-name: ${{ matrix.image }}
+          subject-digest: ${{ matrix.digest }}
+      - name: Attest SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-name: ${{ matrix.image }}
+          subject-digest: ${{ matrix.digest }}
+          sbom-path: sbom.cdx.json
