@@ -6,7 +6,7 @@
 # The Scorecard API verifies this file when results are published: no env or
 # defaults, no run steps, only the approved actions in the job. Keep it that
 # way, otherwise publishing is rejected.
-name: scorecard
+name: scan-scorecard
 
 on:
   workflow_call:

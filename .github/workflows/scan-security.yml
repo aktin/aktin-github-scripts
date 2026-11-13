@@ -7,7 +7,7 @@
 # images, and is skipped when the list is empty. Images must be public.
 #
 # The scan reports, it does not fail the run on findings.
-name: security-scan
+name: scan-security
 
 on:
   workflow_call:

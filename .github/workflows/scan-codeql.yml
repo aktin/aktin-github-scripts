@@ -1,7 +1,7 @@
 # Reusable: static analysis with CodeQL, results go to the code scanning tab
 # of the calling repository. The caller needs the permissions actions: read,
 # contents: read and security-events: write.
-name: codeql
+name: scan-codeql
 
 on:
   workflow_call:
