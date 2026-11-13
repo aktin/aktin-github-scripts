@@ -1,7 +1,7 @@
 # Reusable: language independent lint of the whole repository, the server side
 # counterpart of hooks/lefthook.yml. Each step is skipped or passes when the
 # repository has no file of its kind.
-name: verify-base
+name: verify-common
 
 on:
   workflow_call:

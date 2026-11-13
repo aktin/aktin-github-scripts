@@ -1,5 +1,5 @@
 # Reusable: full check of a bun project. Runs the language independent lint
-# from verify-base.yml, then format check, lint, typecheck, test and build,
+# from verify-common.yml, then format check, lint, typecheck, test and build,
 # the server side counterpart of hooks/lefthook-web.yml. Expects .bun-version
 # and the package.json scripts format:check, lint, typecheck, test and build.
 name: verify-web
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   base:
-    uses: ./.github/workflows/verify-base.yml
+    uses: ./.github/workflows/verify-common.yml
 
   verify:
     runs-on: ubuntu-latest
