@@ -5,8 +5,9 @@
 # Permissions:  contents: write
 # Expects:      cliff.toml in the repository root
 # Takes:        every artifact of the run whose name starts with release-.
-#               All files in them are attached to the release. The job that
-#               uploads an artifact attests its files.
+#               All files in them are attached to the release. The run fails
+#               when there is no file. The job that uploads an artifact
+#               attests its files.
 name: publish-release
 
 on:
@@ -39,3 +40,4 @@ jobs:
         with:
           body: ${{ steps.notes.outputs.content }}
           files: release-*/*
+          fail_on_unmatched_files: true
