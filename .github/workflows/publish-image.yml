@@ -11,6 +11,15 @@
 # To package files built by an earlier job of the same run (build-java.yml,
 # build-web.yml, build-python.yml), set release-files-path. The artifact
 # release-files is then downloaded to that path before the build script runs.
+#
+# When the build script itself produces files for the release, for example a
+# compose file, name them in upload-release-files. They are uploaded as
+# artifact release-files after the build. Use only one of the two inputs,
+# a run holds the artifact release-files once.
+#
+# To keep downloads of the build script between runs, set cache-path and
+# cache-key-files. The cache is only shared when a run on the default branch
+# has filled it, a cache written by a tag run is not visible to other tags.
 name: publish-image
 
 on:
@@ -26,6 +35,21 @@ on:
         type: string
       release-files-path:
         description: 'Path that receives the artifact release-files before the build. Empty skips the download'
+        default: ''
+        required: false
+        type: string
+      upload-release-files:
+        description: 'Files the build script produced for the release, uploaded as artifact release-files. Empty skips the upload'
+        default: ''
+        required: false
+        type: string
+      cache-path:
+        description: 'Directory the build script downloads to, kept between runs. Empty disables the cache'
+        default: ''
+        required: false
+        type: string
+      cache-key-files:
+        description: 'Files whose content decides when the cache is renewed, for example a file with pinned versions'
         default: ''
         required: false
         type: string
@@ -50,10 +74,22 @@ jobs:
         with:
           name: release-files
           path: ${{ inputs.release-files-path }}
+      - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        if: inputs.cache-path != ''
+        with:
+          path: ${{ inputs.cache-path }}
+          key: publish-image-${{ hashFiles(inputs.cache-key-files) }}
       - name: Build images
         env:
           BUILD_COMMAND: ${{ inputs.build-command }}
         run: bash -euo pipefail -c "$BUILD_COMMAND"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: inputs.upload-release-files != ''
+        with:
+          name: release-files
+          path: ${{ inputs.upload-release-files }}
+          if-no-files-found: error
+          retention-days: 1
       - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ghcr.io
