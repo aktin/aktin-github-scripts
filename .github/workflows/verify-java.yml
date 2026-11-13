@@ -1,5 +1,6 @@
 # verify-java: full check of a Maven project. Runs verify-common.yml and
-# `./mvnw -B verify`. Server side counterpart of hooks/lefthook-java.yml.
+# `./mvnw -B verify`. The job verify passes only when both passed. Server side
+# counterpart of hooks/lefthook-java.yml.
 #
 # Call it:      on pull_request and on push to the default branch
 # Permissions:  contents: read
@@ -27,7 +28,7 @@ jobs:
   base:
     uses: ./.github/workflows/verify-common.yml
 
-  verify:
+  maven:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -39,3 +40,19 @@ jobs:
           java-version: ${{ inputs.java-version }}
           cache: maven
       - run: ./mvnw -B verify
+
+  verify:
+    needs: [base, maven]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every job to pass
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [[ "$result" != "success" ]]; then
+              echo "A job ended with: $result"
+              exit 1
+            fi
+          done

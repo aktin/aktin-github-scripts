@@ -1,6 +1,6 @@
 # verify-web: full check of a bun project. Runs verify-common.yml, then format
-# check, lint, typecheck, test and build. Server side counterpart of
-# hooks/lefthook-web.yml.
+# check, lint, typecheck, test and build. The job verify passes only when both
+# passed. Server side counterpart of hooks/lefthook-web.yml.
 #
 # Call it:      on pull_request and on push to the default branch
 # Permissions:  contents: read
@@ -18,7 +18,7 @@ jobs:
   base:
     uses: ./.github/workflows/verify-common.yml
 
-  verify:
+  bun:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -33,3 +33,19 @@ jobs:
       - run: bun run typecheck
       - run: bun run test
       - run: bun run build
+
+  verify:
+    needs: [base, bun]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every job to pass
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [[ "$result" != "success" ]]; then
+              echo "A job ended with: $result"
+              exit 1
+            fi
+          done

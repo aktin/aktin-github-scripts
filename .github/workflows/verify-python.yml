@@ -1,6 +1,6 @@
 # verify-python: full check of a uv project. Runs verify-common.yml, then
-# ruff, mypy, pytest and the build. Server side counterpart of
-# hooks/lefthook-python.yml.
+# ruff, mypy, pytest and the build. The job verify passes only when both
+# passed. Server side counterpart of hooks/lefthook-python.yml.
 #
 # Call it:      on pull_request and on push to the default branch
 # Permissions:  contents: read
@@ -17,7 +17,7 @@ jobs:
   base:
     uses: ./.github/workflows/verify-common.yml
 
-  verify:
+  uv:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -30,3 +30,19 @@ jobs:
       - run: uv run mypy
       - run: uv run pytest
       - run: uv build
+
+  verify:
+    needs: [base, uv]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every job to pass
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [[ "$result" != "success" ]]; then
+              echo "A job ended with: $result"
+              exit 1
+            fi
+          done
