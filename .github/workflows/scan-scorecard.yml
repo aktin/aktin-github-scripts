@@ -1,7 +1,8 @@
-# Reusable: OpenSSF Scorecard analysis, published to the public Scorecard API
-# and to the code scanning tab of the calling repository. Call it on push to
-# the default branch and on a schedule. The calling job must grant
-# security-events: write, id-token: write and contents: read.
+# scan-scorecard: OpenSSF Scorecard analysis, published to the public
+# Scorecard API and to the code scanning tab of the calling repository.
+#
+# Call it:      on push to the default branch and on a schedule
+# Permissions:  contents: read, security-events: write, id-token: write
 #
 # The Scorecard API verifies this file when results are published: no env or
 # defaults, no run steps, only the approved actions in the job. Keep it that

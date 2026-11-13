@@ -1,6 +1,9 @@
-# Reusable: full check of a Maven project. Runs the language independent lint
-# from verify-common.yml and `./mvnw -B verify`, the server side counterpart of
-# hooks/lefthook-java.yml.
+# verify-java: full check of a Maven project. Runs verify-common.yml and
+# `./mvnw -B verify`. Server side counterpart of hooks/lefthook-java.yml.
+#
+# Call it:      on pull_request and on push to the default branch
+# Permissions:  contents: read
+# Expects:      the Maven wrapper in the repository root
 name: verify-java
 
 on:

@@ -1,7 +1,12 @@
-# Reusable: builds the distributions of a uv project with the version taken
-# from the tag and generates their SBOM. Uploads the distributions as artifact
-# release-files and the SBOM as artifact release-sbom, ready for
-# publish-release.yml or publish-image.yml. Call it on push of a tag v*.
+# build-python: builds the distributions of a uv project with the version
+# taken from the tag and generates their SBOM.
+#
+# Call it:      on push of a tag v*
+# Permissions:  contents: read
+# Expects:      uv.lock
+# Hands over:   artifact release-files (wheel and sdist) and artifact
+#               release-sbom (sbom.cdx.json), both kept for one day, for
+#               publish-release.yml or publish-image.yml
 name: build-python
 
 on:

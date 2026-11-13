@@ -1,8 +1,12 @@
-# Reusable: builds and packs the web bundle of a bun project with the version
-# taken from the tag and generates its SBOM. Uploads the packed bundle as
-# artifact release-files and the SBOM as artifact release-sbom, ready for
-# publish-release.yml or publish-image.yml. Call it on push of a tag v*.
-# Expects .bun-version and the package.json script build.
+# build-web: builds the web bundle of a bun project with the version taken
+# from the tag, packs it as <repository>-web-<tag>.tgz and generates its SBOM.
+#
+# Call it:      on push of a tag v*
+# Permissions:  contents: read
+# Expects:      .bun-version and the package.json script build
+# Hands over:   artifact release-files (the packed bundle) and artifact
+#               release-sbom (sbom.cdx.json), both kept for one day, for
+#               publish-release.yml or publish-image.yml
 name: build-web
 
 on:

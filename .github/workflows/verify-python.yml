@@ -1,6 +1,10 @@
-# Reusable: full check of a uv project. Runs the language independent lint
-# from verify-common.yml, then ruff, mypy, pytest and the build, the server side
-# counterpart of hooks/lefthook-python.yml.
+# verify-python: full check of a uv project. Runs verify-common.yml, then
+# ruff, mypy, pytest and the build. Server side counterpart of
+# hooks/lefthook-python.yml.
+#
+# Call it:      on pull_request and on push to the default branch
+# Permissions:  contents: read
+# Expects:      uv.lock, and ruff, mypy and pytest configured in pyproject.toml
 name: verify-python
 
 on:

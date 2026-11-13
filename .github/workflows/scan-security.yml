@@ -1,12 +1,15 @@
-# Reusable: Trivy security scan, findings of severity HIGH and CRITICAL go to
-# the code scanning tab of the calling repository. Call it on a schedule.
+# scan-security: Trivy scan of the repository and, optionally, of published
+# container images. Findings of severity HIGH and CRITICAL go to the code
+# scanning tab of the calling repository. The scan reports, it does not fail
+# the run on findings.
+#
+# Call it:      on a schedule
+# Permissions:  contents: read, security-events: write
 #
 # Job source scans the repository: secrets, misconfigurations (Dockerfiles,
 # compose and workflow files) and known vulnerabilities in lock files.
-# Job images scans published container images, one per entry of the input
-# images, and is skipped when the list is empty. Images must be public.
-#
-# The scan reports, it does not fail the run on findings.
+# Job images scans one image per entry of the input images and is skipped
+# when the list is empty. The images must be public.
 name: scan-security
 
 on:

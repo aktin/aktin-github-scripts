@@ -1,7 +1,13 @@
-# Reusable: builds the jar of a Maven project with the version taken from the
-# tag and generates its SBOM. Uploads the jar as artifact release-files and
-# the SBOM as artifact release-sbom, ready for publish-release.yml or
-# publish-image.yml. Call it on push of a tag v*.
+# build-java: builds the jar of a Maven project with the version taken from
+# the tag and generates its SBOM.
+#
+# Call it:      on push of a tag v*
+# Permissions:  contents: read
+# Expects:      the Maven wrapper, and a pom.xml that takes its version from
+#               the property revision
+# Hands over:   artifact release-files (the jar) and artifact release-sbom
+#               (sbom.cdx.json), both kept for one day, for publish-release.yml
+#               or publish-image.yml
 name: build-java
 
 on:

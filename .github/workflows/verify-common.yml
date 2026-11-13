@@ -1,6 +1,10 @@
-# Reusable: language independent lint of the whole repository, the server side
-# counterpart of hooks/lefthook.yml. Each step is skipped or passes when the
-# repository has no file of its kind.
+# verify-common: lints the files every repository has, whatever its language.
+# Dockerfiles with hadolint, shell scripts with shellcheck and workflow files
+# with actionlint. A step passes when the repository has no file of its kind.
+# Server side counterpart of hooks/lefthook.yml.
+#
+# Call it:      on pull_request and on push to the default branch
+# Permissions:  contents: read
 name: verify-common
 
 on:

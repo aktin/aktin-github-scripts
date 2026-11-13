@@ -1,16 +1,19 @@
-# Reusable: publishes a GitHub Release for files built by earlier jobs of the
-# same run. Generates release notes with git-cliff (cliff.toml of the calling
-# repository), attests the files and attaches them to the release. Call it on
-# push of a tag v*. The calling job must grant contents: write,
-# id-token: write and attestations: write.
+# publish-release: publishes a GitHub Release for files built by earlier jobs
+# of the same run. Writes the release notes with git-cliff, attests the files
+# and attaches them to the release.
 #
-# The earlier jobs hand over the files as artifacts. Which ones exist decides
-# what happens:
-#   release-files   required. Attached with a build provenance attestation.
-#   release-sbom    optional, holds sbom.cdx.json. Attached and attested as
-#                   the SBOM of the files in release-files.
-#   release-extras  optional, also any artifact whose name starts with
-#                   release-extras. Attached as they are, without attestation.
+# Call it:      on push of a tag v*, after the jobs that build the files
+# Permissions:  contents: write, id-token: write, attestations: write
+# Expects:      cliff.toml in the repository root
+# Takes:        the artifacts of the run whose name starts with release-.
+#               Which ones exist decides what happens:
+#                 release-files    required. Attached with a build provenance
+#                                  attestation.
+#                 release-sbom     optional, holds sbom.cdx.json. Attached and
+#                                  attested as the SBOM of release-files.
+#                 release-extras*  optional, any artifact whose name starts
+#                                  with release-extras. Attached as they are,
+#                                  without attestation.
 name: publish-release
 
 on:

@@ -1,6 +1,8 @@
-# Reusable: static analysis with CodeQL, results go to the code scanning tab
-# of the calling repository. The caller needs the permissions actions: read,
-# contents: read and security-events: write.
+# scan-codeql: static analysis with CodeQL. Findings go to the code scanning
+# tab of the calling repository.
+#
+# Call it:      on pull_request and on push to the default branch
+# Permissions:  actions: read, contents: read, security-events: write
 name: scan-codeql
 
 on:

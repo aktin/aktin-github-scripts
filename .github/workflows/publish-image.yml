@@ -1,27 +1,33 @@
-# Reusable: pushes container images that the build script of the calling
-# repository has built, with all tags and labels the script gave them. Then
-# signs each image with cosign, generates its SBOM and attests build
-# provenance and the SBOM. Each SBOM is also uploaded as artifact
-# release-extras-<image>, so publish-release.yml attaches it to the release.
-# The calling job must grant packages: write, id-token: write and
-# attestations: write.
+# publish-image: runs the build script of the calling repository and pushes
+# the images it built to GHCR, with all tags and labels the script gave them.
+# Then signs each image with cosign, generates its SBOM and attests build
+# provenance and the SBOM.
+#
+# Call it:      on push of a tag v*, or on a schedule to rebuild
+# Permissions:  contents: read, packages: write, id-token: write,
+#               attestations: write
+# Expects:      a build script that tags every image with its full name from
+#               the input images. The tag is available to it as
+#               GITHUB_REF_NAME.
+# Hands over:   one artifact release-extras-<image> per image with its SBOM,
+#               kept for one day, so publish-release.yml attaches it
 #
 # The build script runs inside this workflow, because a later job cannot see
-# the images of an earlier one. It must tag every image with its full name
-# from the input images. The tag is available to it as GITHUB_REF_NAME.
+# the images of an earlier one.
 #
-# To package files built by an earlier job of the same run (build-java.yml,
-# build-web.yml, build-python.yml), set release-files-path. The artifact
-# release-files is then downloaded to that path before the build script runs.
-#
-# When the build script itself produces files for the release, for example a
-# compose file, name them in upload-release-files. They are uploaded as
-# artifact release-files after the build. Use only one of the two inputs,
-# a run holds the artifact release-files once.
-#
-# To keep downloads of the build script between runs, set cache-path and
-# cache-key-files. The cache is only shared when a run on the default branch
-# has filled it, a cache written by a tag run is not visible to other tags.
+# Optional inputs:
+#   release-files-path    packages files of an earlier job (build-java.yml,
+#                         build-web.yml, build-python.yml). The artifact
+#                         release-files is downloaded to this path before the
+#                         build script runs.
+#   upload-release-files  hands files of the build script to the release, for
+#                         example a compose file. They are uploaded as
+#                         artifact release-files after the build. Use only one
+#                         of these two inputs, a run holds release-files once.
+#   cache-path and        keep downloads of the build script between runs.
+#   cache-key-files       The cache is only shared when a run on the default
+#                         branch has filled it. A cache written by a tag run
+#                         is not visible to other tags.
 name: publish-image
 
 on:

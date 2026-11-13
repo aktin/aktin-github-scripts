@@ -1,6 +1,8 @@
-# Reusable: blocks a pull request that adds a dependency with a known
-# vulnerability of severity high or worse. Call it from a workflow that runs
-# on pull_request.
+# scan-dependencies: blocks a pull request that adds a dependency with a known
+# vulnerability of severity high or worse.
+#
+# Call it:      on pull_request
+# Permissions:  contents: read
 name: scan-dependencies
 
 on:
