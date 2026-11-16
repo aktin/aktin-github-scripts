@@ -1,9 +1,9 @@
 # build-publish-image: builds container images and publishes them to GHCR.
 # The calling repository brings a build script that builds the images
 # complete, with all tags and labels. This workflow runs the script and pushes
-# the images as they are, then signs each image with cosign, generates its
-# SBOM and attests build provenance and the SBOM. The input attest set to
-# false skips signature, SBOM and attestations.
+# the images as they are, then generates the SBOM of each image and attests
+# build provenance and the SBOM. The input attest set to false skips SBOM and
+# attestations.
 #
 # Call it:      on push of a tag v*, or on a schedule to rebuild
 # Permissions:  contents: read, packages: write, id-token: write,
@@ -42,7 +42,7 @@ on:
         required: true
         type: string
       attest:
-        description: 'Sign the images, generate their SBOM and attest build provenance and the SBOM'
+        description: 'Generate the SBOM of each image and attest build provenance and the SBOM'
         default: true
         required: false
         type: boolean
@@ -136,7 +136,7 @@ jobs:
     if: inputs.attest
     runs-on: ubuntu-latest
     permissions:
-      packages: write
+      packages: read
       id-token: write
       attestations: write
     strategy:
@@ -149,12 +149,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
-      - name: Sign image
-        env:
-          IMAGE: ${{ matrix.image }}
-          DIGEST: ${{ matrix.digest }}
-        run: cosign sign --yes "${IMAGE}@${DIGEST}"
       - name: Derive SBOM file name
         id: name
         env:
