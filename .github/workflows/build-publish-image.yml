@@ -28,6 +28,12 @@
 #   cache-key-files       The cache is only shared when a run on the default
 #                         branch has filled it. A cache written by a tag run
 #                         is not visible to other tags.
+#   delete-untagged       deletes all untagged versions of the package of
+#                         every pushed image after the push. Needs the role
+#                         Admin for the calling repository under Manage
+#                         Actions access in the settings of each package. Only
+#                         for single platform images, a multi platform image
+#                         keeps its platform manifests untagged.
 name: build-publish-image
 
 on:
@@ -66,6 +72,11 @@ on:
         default: ''
         required: false
         type: string
+      delete-untagged:
+        description: 'Delete all untagged versions of the package of every pushed image after the push'
+        default: false
+        required: false
+        type: boolean
 
 permissions:
   contents: read
@@ -178,3 +189,26 @@ jobs:
           subject-name: ${{ matrix.image }}
           subject-digest: ${{ matrix.digest }}
           sbom-path: ${{ steps.name.outputs.name }}.sbom.cdx.json
+
+  delete-untagged:
+    needs: push
+    if: inputs.delete-untagged
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.push.outputs.pushed) }}
+    steps:
+      - name: Derive package name
+        id: name
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: echo "name=${IMAGE##*/}" >> "$GITHUB_OUTPUT"
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: ${{ steps.name.outputs.name }}
+          package-type: container
+          delete-only-untagged-versions: 'true'
+          min-versions-to-keep: 0
