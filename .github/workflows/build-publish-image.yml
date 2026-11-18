@@ -81,7 +81,7 @@ jobs:
     outputs:
       pushed: ${{ steps.push.outputs.pushed }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -101,7 +101,7 @@ jobs:
         run: bash -euo pipefail -c "$BUILD_COMMAND"
       - name: Attest build provenance of the release files
         if: inputs.attest && inputs.upload-release-files != ''
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: ${{ inputs.upload-release-files }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -168,7 +168,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ${{ matrix.image }}
           subject-digest: ${{ matrix.digest }}
