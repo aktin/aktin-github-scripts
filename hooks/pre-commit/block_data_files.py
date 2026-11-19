@@ -2,24 +2,17 @@
 """
 Block staged data files outside the synthetic-fixture allowlist
 
-The allowlist is a comma separated list of path prefixes in the environment
-variable ``DATA_FILE_ALLOWLIST``. Unset or empty falls back to ``tests/fixtures/``.
+The allowlist is a comma separated list of path prefixes in ``--allow``,
+``tests/fixtures/`` by default.
 """
 
 from __future__ import annotations
 
-import os
+import argparse
 import sys
 
 BLOCKED_SUFFIXES = (".csv", ".tsv", ".xls", ".xlsx", ".parquet", ".sql", ".db", ".sqlite", ".log", ".dcm", ".hl7")
-ALLOWLIST_ENV = "DATA_FILE_ALLOWLIST"
-DEFAULT_ALLOWLIST = ("tests/fixtures/",)
-
-
-def _allowlist() -> tuple[str, ...]:
-  """Allowed path prefixes from the environment, or the default if none are set."""
-  prefixes = tuple(p.strip() for p in os.environ.get(ALLOWLIST_ENV, "").split(",") if p.strip())
-  return prefixes or DEFAULT_ALLOWLIST
+DEFAULT_ALLOWLIST = "tests/fixtures/"
 
 
 def _is_blocked(path: str, allowlist: tuple[str, ...]) -> bool:
@@ -30,8 +23,12 @@ def _is_blocked(path: str, allowlist: tuple[str, ...]) -> bool:
 
 
 def main(argv: list[str]) -> int:
-  allowlist = _allowlist()
-  blocked = [p for p in argv if _is_blocked(p, allowlist)]
+  parser = argparse.ArgumentParser(description="Block staged data files outside the synthetic-fixture allowlist")
+  parser.add_argument("--allow", default=DEFAULT_ALLOWLIST, help=f"allowed path prefixes, comma separated (default: {DEFAULT_ALLOWLIST})")
+  parser.add_argument("files", nargs="*")
+  args = parser.parse_args(argv)
+  allowlist = tuple(p.strip() for p in args.allow.split(",") if p.strip())
+  blocked = [p for p in args.files if _is_blocked(p, allowlist)]
   if not blocked:
     return 0
   print("Refusing to commit data files (possible patient data):\n", file=sys.stderr)
