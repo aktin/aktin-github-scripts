@@ -2,6 +2,8 @@
 
 Reusable GitHub workflows, git hooks and repository settings profiles for the AKTIN repositories.
 
+Setting up a new repository? Start with the [new repository guide](new-repository.md).
+
 ### Folder Structure:
 
 - **.github/workflows/**: Reusable GitHub workflows.
