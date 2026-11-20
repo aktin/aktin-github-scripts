@@ -2,7 +2,8 @@
 # Dockerfiles with hadolint, shell scripts with shellcheck and workflow files
 # with actionlint. A step passes when the repository has no file of its kind.
 # On a pull request it also fails when added plus deleted lines exceed
-# pr-max-lines. Server side counterpart of hooks/lefthook.yml.
+# pr-max-lines, unless its title contains [skip-size]. Server side counterpart
+# of hooks/lefthook.yml.
 #
 # Call it:      on pull_request and on push to the default branch
 # Permissions:  contents: read
@@ -40,7 +41,7 @@ jobs:
         run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color # 1.7.12
 
   pr-size:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.title, '[skip-size]')
     runs-on: ubuntu-latest
     steps:
       - name: Check pull request size
