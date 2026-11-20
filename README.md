@@ -120,7 +120,7 @@ To use another source or a fixed version, change `git_url` and `ref`. `ref` must
 
 ### Repository Settings:
 
-A profile holds the complete settings of a repository: merge options, Actions permissions, Dependabot and the rulesets for branches and tags.
+A profile holds the complete settings of a repository: merge options, who may open pull requests, Actions permissions, Dependabot, immutable releases and the rulesets for branches and tags.
 
 | Profile           | For                                                                                     | Protected refs           | Required checks                      |
 |-------------------|-----------------------------------------------------------------------------------------|--------------------------|--------------------------------------|
@@ -128,7 +128,9 @@ A profile holds the complete settings of a repository: merge options, Actions pe
 | `no-release.json` | Repositories without a release process, feature branches go to `main`                   | `main`                   | `verify / verify`                    |
 | `release.json`    | Repositories with a release process, feature branches go to `dev`, `dev` goes to `main` | `main`, `dev`, tags `v*` | `verify / verify`, `review / review` |
 
-The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`. `release.json` also requires CodeQL results on `main`.
+The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`. `release.json` also requires CodeQL results on `main` and makes published releases immutable.
+
+`template.json` switches pull requests off, commits go directly to `main`. The other two profiles let only collaborators open pull requests.
 
 #### Usage:
 
