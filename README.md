@@ -1,11 +1,12 @@
 ## aktin-github-scripts
 
-Reusable GitHub workflows and git hooks for the AKTIN repositories.
+Reusable GitHub workflows, git hooks and repository settings profiles for the AKTIN repositories.
 
 ### Folder Structure:
 
 - **.github/workflows/**: Reusable GitHub workflows.
 - **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev), plus an example configuration for the pre-commit framework.
+- **repo-settings/**: Repository settings profiles and a script that applies one to a repository.
 
 ### Workflows:
 
@@ -116,6 +117,28 @@ The language profiles add lint, format and pre-push hooks for one build tool. Pi
 The profiles only call the tools. The rules and settings of each tool stay in your project.
 
 To use another source or a fixed version, change `git_url` and `ref`. `ref` must not contain a slash, so use a tag or a branch name without a slash. To change a hook, override its entry in `lefthook-local.yml`. Example: `args: "--max-lines=300"` for `check_commit_size.py`. The shared config sets `source_dir: hooks`. lefthook then also looks for the scripts of your own project in `hooks/`, not in `.lefthook/`.
+
+### Repository Settings:
+
+A profile holds the complete settings of a repository: merge options, Actions permissions, Dependabot and the rulesets for branches and tags.
+
+| Profile           | For                                                                                     | Protected refs           | Required checks                      |
+|-------------------|-----------------------------------------------------------------------------------------|--------------------------|--------------------------------------|
+| `template.json`   | Template repositories                                                                   | `main`                   | none                                 |
+| `no-release.json` | Repositories without a release process, feature branches go to `main`                   | `main`                   | `verify / verify`                    |
+| `release.json`    | Repositories with a release process, feature branches go to `dev`, `dev` goes to `main` | `main`, `dev`, tags `v*` | `verify / verify`, `review / review` |
+
+The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`. `release.json` also requires CodeQL results on `main`.
+
+#### Usage:
+
+Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. A repository created from a template does not inherit the settings of the template, so apply a profile to every new repository.
+
+```bash
+repo-settings/apply.sh aktin/my-repository repo-settings/release.json
+```
+
+The script replaces a ruleset that has the same name as one in the profile and leaves other rulesets untouched.
 
 ### License:
 
