@@ -36,7 +36,8 @@ send PUT /actions/permissions/workflow .workflow_permissions
 if [ "$(jq -r .dependabot "$profile")" = true ]; then
   gh api -X PUT "repos/$repo/vulnerability-alerts"
   gh api -X PUT "repos/$repo/automated-security-fixes"
-else
+# The API rejects turning security updates off while alerts are already off.
+elif gh api "repos/$repo/vulnerability-alerts" --silent 2>/dev/null; then
   gh api -X DELETE "repos/$repo/automated-security-fixes"
   gh api -X DELETE "repos/$repo/vulnerability-alerts"
 fi
