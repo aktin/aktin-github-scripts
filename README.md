@@ -77,6 +77,19 @@ jobs:
     uses: aktin/aktin-github-scripts/.github/workflows/publish-release.yml@main
 ```
 
+### Security Scans:
+
+Workflows run the scans, the repository settings switch on the scans that GitHub runs itself. CodeQL default setup stays off, so CodeQL runs only through `scan-codeql`.
+
+| Scan              | Runs as                         | Results                                     |
+|-------------------|---------------------------------|---------------------------------------------|
+| CodeQL            | workflow `scan-codeql`          | code scanning tab                           |
+| Trivy             | workflow `scan-image`           | code scanning tab, high and critical only   |
+| OpenSSF Scorecard | workflow `scan-scorecard`       | code scanning tab and the Scorecard API     |
+| Dependency review | workflow `scan-dependencies`    | check and comment in the pull request       |
+| Dependabot        | setting `dependabot`            | Dependabot tab and pull requests with fixes |
+| Secret scanning   | setting `security_and_analysis` | secret scanning tab, rejected pushes        |
+
 ### Git Hooks:
 
 | Hook                      | What it does                                                                                                | Configuration                                                                                                                                                                                                               | Needs on PATH                                     |
