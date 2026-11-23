@@ -120,7 +120,9 @@ To use another source or a fixed version, change `git_url` and `ref`. `ref` must
 
 ### Repository Settings:
 
-A profile holds the complete settings of a repository: merge options, who may open pull requests, Actions permissions, Dependabot, immutable releases and the rulesets for branches and tags.
+A profile holds the complete settings of a repository: merge options, who may open pull requests, Actions permissions, Dependabot, immutable releases and the rulesets for branches and tags. `apply.sh` applies one profile to a repository.
+
+#### Profiles:
 
 | Profile           | For                                                                                     | Protected refs           | Required checks                      |
 |-------------------|-----------------------------------------------------------------------------------------|--------------------------|--------------------------------------|
@@ -128,9 +130,7 @@ A profile holds the complete settings of a repository: merge options, who may op
 | `no-release.json` | Repositories without a release process, feature branches go to `main`                   | `main`                   | `verify / verify`                    |
 | `release.json`    | Repositories with a release process, feature branches go to `dev`, `dev` goes to `main` | `main`, `dev`, tags `v*` | `verify / verify`, `review / review` |
 
-The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`. `release.json` also requires CodeQL results on `main` and makes published releases immutable.
-
-`template.json` switches pull requests off, commits go directly to `main`. The other two profiles let only collaborators open pull requests.
+The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`.
 
 #### Usage:
 
@@ -140,7 +140,66 @@ Run the script with the repository and a profile. It needs `jq` and `gh`, logged
 repo-settings/apply.sh aktin/my-repository repo-settings/release.json
 ```
 
-The script replaces a ruleset that has the same name as one in the profile and leaves other rulesets untouched.
+The script replaces a ruleset that has the same name as one in the profile and leaves other rulesets untouched. A setting a profile does not contain stays as it is in the repository.
+
+#### Settings:
+
+##### Repository
+
+| Setting                                                          | What it does                                                                             | `template`   | `no-release`      | `release`         |
+|------------------------------------------------------------------|------------------------------------------------------------------------------------------|--------------|-------------------|-------------------|
+| `is_template`                                                    | Marks the repository as a template for new repositories                                  | yes          | no                | no                |
+| `has_issues`                                                     | Issues tab                                                                               | on           | on                | on                |
+| `has_projects`                                                   | Projects tab                                                                             | off          | on                | on                |
+| `has_wiki`                                                       | Wiki tab                                                                                 | off          | off               | off               |
+| `has_discussions`                                                | Discussions tab                                                                          | off          | off               | off               |
+| `has_pull_requests`                                              | Pull requests tab                                                                        | off          | not set           | not set           |
+| `pull_request_creation_policy`                                   | Who may open pull requests                                                               | not set      | collaborators     | collaborators     |
+| `allow_squash_merge`, `allow_merge_commit`, `allow_rebase_merge` | Merge methods the repository offers. The rulesets narrow them for the protected branches | all on       | all on            | all on            |
+| `allow_auto_merge`                                               | Merges a pull request on its own once all requirements are met                           | off          | off               | off               |
+| `allow_update_branch`                                            | Offers to update a pull request branch with the latest changes of its base branch        | on           | on                | on                |
+| `delete_branch_on_merge`                                         | Deletes the head branch after its pull request is merged                                 | on           | on                | on                |
+| `*_merge_commit_title`, `*_merge_commit_message`                 | Message of a squash or merge commit                                                      | PR title, no body | PR title, no body | PR title, no body |
+| `web_commit_signoff_required`                                    | Commits made in the web interface need a sign off                                        | on           | on                | on                |
+| `secret_scanning`                                                | Scans the repository for secrets                                                         | on           | on                | on                |
+| `secret_scanning_push_protection`                                | Rejects pushes that contain secrets                                                      | on           | on                | on                |
+
+##### Actions and Security
+
+| Setting                            | What it does                                                                     | `template` | `no-release` | `release` |
+|------------------------------------|----------------------------------------------------------------------------------|------------|--------------|-----------|
+| `enabled`                          | GitHub Actions                                                                   | off        | on           | on        |
+| `allowed_actions`                  | Actions that workflows may use                                                   | not set    | all          | all       |
+| `sha_pinning_required`             | Workflows must reference actions by full commit SHA                              | not set    | on           | on        |
+| `default_workflow_permissions`     | Default permissions of `GITHUB_TOKEN`                                            | read       | read         | read      |
+| `can_approve_pull_request_reviews` | Workflows may approve pull requests                                              | no         | no           | no        |
+| `dependabot`                       | Dependabot alerts and security updates                                           | off        | on           | on        |
+| `immutable_releases`               | Assets and tag of a published release can no longer be changed                   | not set    | not set      | on        |
+
+`apply.sh` only switches immutable releases on. A profile without the key leaves them as they are.
+
+##### Rulesets
+
+| Rule                                         | `template`: `default` | `no-release`: `default` | `release`: `default`                     | `release`: `dev`        | `release`: `release-tags`               |
+|----------------------------------------------|-----------------------|-------------------------|------------------------------------------|-------------------------|-----------------------------------------|
+| Applies to                                   | `main`                | `main`                  | `main`                                   | `dev`                   | tags `v*`                               |
+| May bypass                                   | nobody                | organization admins     | organization admins                      | organization admins     | organization admins, repository role 2  |
+| Blocks deletion                              | yes                   | yes                     | yes                                      | yes                     | yes                                     |
+| Blocks force pushes                          | yes                   | yes                     | yes                                      | yes                     |                                         |
+| Requires signed commits                      | yes                   | yes                     | yes                                      | yes                     |                                         |
+| Requires a pull request                      | no                    | yes                     | yes                                      | yes                     |                                         |
+| Allowed merge method                         |                       | squash                  | merge commit                             | squash                  |                                         |
+| Required approvals                           |                       | 1                       | 1                                        | 1                       |                                         |
+| Requires review by a code owner              |                       | yes                     | yes                                      | no                      |                                         |
+| Dismisses approvals on new pushes            |                       | yes                     | yes                                      | no                      |                                         |
+| Last push must be approved by someone else   |                       | yes                     | yes                                      | no                      |                                         |
+| Extra approval for unattributed changes      |                       | yes                     | yes                                      | yes                     |                                         |
+| All review threads must be resolved          |                       | yes                     | yes                                      | yes                     |                                         |
+| Required status checks                       |                       | `verify / verify`       | `verify / verify`, `review / review`     | `verify / verify`, `review / review` |                            |
+| Code scanning                                |                       |                         | CodeQL, fails on errors and on security alerts high or higher |   |                                         |
+| Blocks creation and update of tags           |                       |                         |                                          |                         | yes                                     |
+
+An empty cell means the rule is not part of the ruleset. The status checks must come from GitHub Actions.
 
 ### License:
 
