@@ -77,7 +77,7 @@ Everyone who clones the repository later installs the hooks once as well. The co
    | `no-release.json` | The repository publishes no releases | Feature branches go to `main`                                               |
    | `release.json`    | The repository publishes releases    | Feature branches go to `dev`, `dev` goes to `main`, a release is a tag `v*` |
 
-2. Only for `release.json`: create the branch `dev` and point Dependabot at it, as described under "Optional branch `dev`" in the README of your repository. Do this now, because the rulesets block direct pushes afterwards.
+2. Only for `release.json`: create the branch `dev` and point Dependabot at it, as described under "Branch `dev` for releases" in the README of your repository. Do this now, because the rulesets block direct pushes afterwards.
 3. Clone this repository and run the script from its root with your repository and the profile:
    ```bash
    git clone https://github.com/aktin/aktin-github-scripts
