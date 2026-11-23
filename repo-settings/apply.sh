@@ -46,3 +46,9 @@ echo "ok  dependabot $(jq -r .dependabot "$profile")"
 jq -c '.rulesets[]' "$profile" | while read -r ruleset; do
   apply_ruleset "$ruleset"
 done
+
+# Immutable releases are only switched on, a profile without the key leaves them untouched.
+if [ "$(jq -r .immutable_releases "$profile")" = true ]; then
+  gh api -X PUT "repos/$repo/immutable-releases"
+  echo "ok  immutable releases"
+fi
