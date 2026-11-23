@@ -15,7 +15,7 @@ Setting up a new repository? Start with the [new repository guide](new-repositor
 | Workflow              | What it does                                                                                                                                                                                                                                                 | Permissions of the calling job                                                |
 |-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | `verify-common`       | Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint. Fails a pull request with more than `pr-max-lines` added plus deleted lines, 400 by default                                                    | `contents: read`                                                              |
-| `verify-java`         | Runs `verify-common` and `./mvnw -B verify`                                                                                                                                                                                                                  | `contents: read`                                                              |
+| `verify-java`         | Runs `verify-common` and `./mvnw -B verify`. On push to the default branch it submits the Maven dependency tree to the dependency graph                                                                                                                      | `contents: write`                                                             |
 | `verify-web`          | Runs `verify-common`, then the [bun](https://bun.sh) scripts `format:check`, `lint`, `typecheck`, `test` and `build`                                                                                                                                         | `contents: read`                                                              |
 | `verify-python`       | Runs `verify-common`, then [ruff](https://docs.astral.sh/ruff/), mypy, pytest and `uv build`                                                                                                                                                                 | `contents: read`                                                              |
 | `build-java`          | Builds the jar of a Maven project with the version from the tag, generates its SBOM and attests both                                                                                                                                                         | `contents: read`, `id-token: write`, `attestations: write`                    |
@@ -50,6 +50,8 @@ permissions:
 
 jobs:
   verify:
+    permissions:
+      contents: write
     uses: aktin/aktin-github-scripts/.github/workflows/verify-java.yml@main
   build:
     needs: verify

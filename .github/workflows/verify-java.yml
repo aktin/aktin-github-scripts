@@ -1,9 +1,11 @@
 # verify-java: full check of a Maven project. Runs verify-common.yml and
 # `./mvnw -B verify`. The job verify passes only when both passed. Server side
-# counterpart of hooks/lefthook-java.yml.
+# counterpart of hooks/lefthook-java.yml. On push to the default branch the
+# job dependencies submits the full Maven dependency tree to the dependency
+# graph, so Dependabot also alerts on transitive dependencies.
 #
 # Call it:      on pull_request and on push to the default branch
-# Permissions:  contents: read
+# Permissions:  contents: write, only the job dependencies uses it
 # Expects:      the Maven wrapper in the repository root
 name: verify-java
 
@@ -47,6 +49,22 @@ jobs:
           java-version: ${{ inputs.java-version }}
           cache: maven
       - run: ./mvnw -B verify
+
+  dependencies:
+    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: ${{ inputs.java-distribution }}
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+      - uses: advanced-security/maven-dependency-submission-action@a64327a7329c9939cf675e458452febe1894a70c # v6.0.1
 
   verify:
     needs: [base, maven]
