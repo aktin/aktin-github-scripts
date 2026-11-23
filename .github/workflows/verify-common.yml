@@ -2,8 +2,9 @@
 # Dockerfiles with hadolint, shell scripts with shellcheck and workflow files
 # with actionlint. A step passes when the repository has no file of its kind.
 # On a pull request it also fails when added plus deleted lines exceed
-# pr-max-lines, unless its title contains [skip-size]. Server side counterpart
-# of hooks/lefthook.yml.
+# pr-max-lines, unless its title contains [skip-size]. The job verify passes
+# only when the lint and the size check passed. Server side counterpart of
+# hooks/lefthook.yml.
 #
 # Call it:      on pull_request and on push to the default branch
 # Permissions:  contents: read
@@ -22,7 +23,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -56,3 +57,20 @@ jobs:
             echo "::error::Pull request changes $total lines, limit is $MAX_LINES. Split it into smaller pull requests"
             exit 1
           fi
+
+  # pr-size is skipped on a push and with [skip-size], which counts as passed.
+  verify:
+    needs: [lint, pr-size]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every job to pass
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              echo "A job ended with: $result"
+              exit 1
+            fi
+          done
