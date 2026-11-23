@@ -12,7 +12,7 @@
 # hadolint and shellcheck on PATH. A missing tool fails the commit, it is not
 # skipped. A command with a glob only runs when a matching file is staged.
 # Override a hook per project in lefthook-local.yml, for example:
-#   pre-commit:
+#   commit-msg:
 #     scripts:
 #       "check_commit_size.py":
 #         args: "--max-lines=300"
@@ -41,10 +41,10 @@ pre-commit:
     "check_large_files.py":
       runner: python3
       args: "{staged_files}"
-    "check_commit_size.py":
-      runner: python3
 
 commit-msg:
   scripts:
     "check_commit_message.py":
+      runner: python3
+    "check_commit_size.py":
       runner: python3

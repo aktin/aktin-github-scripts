@@ -1,7 +1,9 @@
 # verify-common: lints the files every repository has, whatever its language.
 # Dockerfiles with hadolint, shell scripts with shellcheck and workflow files
 # with actionlint. A step passes when the repository has no file of its kind.
-# Server side counterpart of hooks/lefthook.yml.
+# On a pull request it also fails when added plus deleted lines exceed
+# pr-max-lines, unless its title contains [skip-size]. Server side counterpart
+# of hooks/lefthook.yml.
 #
 # Call it:      on pull_request and on push to the default branch
 # Permissions:  contents: read
@@ -9,6 +11,12 @@ name: verify-common
 
 on:
   workflow_call:
+    inputs:
+      pr-max-lines:
+        description: 'Maximum added plus deleted lines of a pull request'
+        default: 400
+        required: false
+        type: number
 
 permissions:
   contents: read
@@ -31,3 +39,20 @@ jobs:
         run: git ls-files -z '*.sh' | xargs -0 -r shellcheck -S warning
       - name: Lint workflows
         run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color # 1.7.12
+
+  pr-size:
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.title, '[skip-size]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check pull request size
+        env:
+          ADDED: ${{ github.event.pull_request.additions }}
+          DELETED: ${{ github.event.pull_request.deletions }}
+          MAX_LINES: ${{ inputs.pr-max-lines }}
+        run: |
+          total=$((ADDED + DELETED))
+          echo "Pull request changes $total lines, limit is $MAX_LINES"
+          if (( total > MAX_LINES )); then
+            echo "::error::Pull request changes $total lines, limit is $MAX_LINES. Split it into smaller pull requests"
+            exit 1
+          fi

@@ -1,17 +1,18 @@
 ## aktin-github-scripts
 
-Reusable GitHub workflows and git hooks for the AKTIN repositories.
+Reusable GitHub workflows, git hooks and repository settings profiles for the AKTIN repositories.
 
 ### Folder Structure:
 
 - **.github/workflows/**: Reusable GitHub workflows.
 - **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev), plus an example configuration for the pre-commit framework.
+- **repo-settings/**: Repository settings profiles and a script that applies one to a repository.
 
 ### Workflows:
 
 | Workflow              | What it does                                                                                                                                                                                                                                                 | Permissions of the calling job                                                |
 |-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| `verify-common`       | Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint                                                                                                                                                 | `contents: read`                                                              |
+| `verify-common`       | Lints all Dockerfiles with hadolint, all `*.sh` files with shellcheck and all workflow files with actionlint. Fails a pull request with more than `pr-max-lines` added plus deleted lines, 400 by default                                                    | `contents: read`                                                              |
 | `verify-java`         | Runs `verify-common` and `./mvnw -B verify`                                                                                                                                                                                                                  | `contents: read`                                                              |
 | `verify-web`          | Runs `verify-common`, then the [bun](https://bun.sh) scripts `format:check`, `lint`, `typecheck`, `test` and `build`                                                                                                                                         | `contents: read`                                                              |
 | `verify-python`       | Runs `verify-common`, then [ruff](https://docs.astral.sh/ruff/), mypy, pytest and `uv build`                                                                                                                                                                 | `contents: read`                                                              |
@@ -25,7 +26,7 @@ Reusable GitHub workflows and git hooks for the AKTIN repositories.
 | `scan-scorecard`      | Runs the [OpenSSF Scorecard](https://scorecard.dev) analysis and publishes the result                                                                                                                                                                        | `contents: read`, `security-events: write`, `id-token: write`                 |
 | `scan-image`          | Scans published container images with Trivy. Reports findings of severity HIGH and CRITICAL to the code scanning tab, the run does not fail on findings                                                                                                      | `contents: read`, `security-events: write`                                    |
 
-A project calls the verify workflow of each build tool it uses, or `verify-common` alone. A release with several build tools runs their `build-` workflows side by side and one `publish-release` after them. Every `build-` workflow takes the input `attest`. Set to `false` it skips the SBOM and the attestations. Inputs and requirements of each workflow are described in the comment at the top of its file.
+A project calls the verify workflow of each build tool it uses, or `verify-common` alone. A release with several build tools runs their `build-` workflows side by side and one `publish-release` after them. Every `build-` workflow takes the input `attest`. Set to `false` it skips the SBOM and the attestations. Inputs and requirements of each workflow are described in the comment at the top of its file. A pull request with `[skip-size]` in its title is not checked against `pr-max-lines`.
 
 > [!NOTE]
 > An SBOM (Software Bill of Materials) is an inventory of the components and dependencies that make up a piece of software.
@@ -78,9 +79,9 @@ jobs:
 
 | Hook                      | What it does                                                                                                | Configuration                                                                                                                                                                                                               | Needs on PATH                                     |
 |---------------------------|-------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| `block_data_files.py`     | Rejects staged data files (`.csv`, `.xlsx`, `.sql`, `.dcm`, `.hl7`, ...) outside the allowed folders        | Allowed folders, comma separated, in the environment variable `DATA_FILE_ALLOWLIST`. Default is `tests/fixtures/`. Example: `env: { DATA_FILE_ALLOWLIST: "src/resources/database/" }` on the script entry in `lefthook.yml` | python3                                           |
-| `check_large_files.py`    | Rejects staged files larger than 500 KB                                                                     | none                                                                                                                                                                                                                        | python3                                           |
-| `check_commit_size.py`    | Rejects commits that change more than 200 lines in total (insertions plus deletions)                        | Limit with `--max-lines`                                                                                                                                                                                                    | python3                                           |
+| `block_data_files.py`     | Rejects staged data files (`.csv`, `.xlsx`, `.sql`, `.dcm`, `.hl7`, ...) outside the allowed folders        | Allowed folders, comma separated, with `--allow`. Default is `tests/fixtures/`. Keep `{staged_files}` when you override `args`, example: `args: "--allow=src/resources/database/ {staged_files}"`                           | python3                                           |
+| `check_large_files.py`    | Rejects staged files larger than 500 KB                                                                     | Limit in KB with `--max-kb`. Keep `{staged_files}` when you override `args`, example: `args: "--max-kb=2048 {staged_files}"`                                                                                                | python3                                           |
+| `check_commit_size.py`    | Rejects commits that change more than 200 lines in total (insertions plus deletions)                        | Limit with `--max-lines`. `[skip-size]` in the commit header skips the check                                                                                                                                                | python3                                           |
 | `check_commit_message.py` | Validates the commit message against the EU System Conventional Commit rules (`<type>(<scope>): <subject>`) | none                                                                                                                                                                                                                        | python3                                           |
 | gitleaks                  | Scans the staged changes for secrets                                                                        | none                                                                                                                                                                                                                        | [gitleaks](https://github.com/gitleaks/gitleaks)  |
 | actionlint                | Lints staged workflow files under `.github/workflows/`                                                      | none                                                                                                                                                                                                                        | [actionlint](https://github.com/rhysd/actionlint) |
@@ -116,6 +117,28 @@ The language profiles add lint, format and pre-push hooks for one build tool. Pi
 The profiles only call the tools. The rules and settings of each tool stay in your project.
 
 To use another source or a fixed version, change `git_url` and `ref`. `ref` must not contain a slash, so use a tag or a branch name without a slash. To change a hook, override its entry in `lefthook-local.yml`. Example: `args: "--max-lines=300"` for `check_commit_size.py`. The shared config sets `source_dir: hooks`. lefthook then also looks for the scripts of your own project in `hooks/`, not in `.lefthook/`.
+
+### Repository Settings:
+
+A profile holds the complete settings of a repository: merge options, Actions permissions, Dependabot and the rulesets for branches and tags.
+
+| Profile           | For                                                                                     | Protected refs           | Required checks                      |
+|-------------------|-----------------------------------------------------------------------------------------|--------------------------|--------------------------------------|
+| `template.json`   | Template repositories                                                                   | `main`                   | none                                 |
+| `no-release.json` | Repositories without a release process, feature branches go to `main`                   | `main`                   | `verify / verify`                    |
+| `release.json`    | Repositories with a release process, feature branches go to `dev`, `dev` goes to `main` | `main`, `dev`, tags `v*` | `verify / verify`, `review / review` |
+
+The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`. `release.json` also requires CodeQL results on `main`.
+
+#### Usage:
+
+Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. A repository created from a template does not inherit the settings of the template, so apply a profile to every new repository.
+
+```bash
+repo-settings/apply.sh aktin/my-repository repo-settings/release.json
+```
+
+The script replaces a ruleset that has the same name as one in the profile and leaves other rulesets untouched.
 
 ### License:
 

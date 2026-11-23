@@ -20,6 +20,11 @@ on:
         default: 'temurin'
         required: false
         type: string
+      pr-max-lines:
+        description: 'Maximum added plus deleted lines of a pull request'
+        default: 400
+        required: false
+        type: number
 
 permissions:
   contents: read
@@ -27,6 +32,8 @@ permissions:
 jobs:
   base:
     uses: ./.github/workflows/verify-common.yml
+    with:
+      pr-max-lines: ${{ inputs.pr-max-lines }}
 
   maven:
     runs-on: ubuntu-latest
