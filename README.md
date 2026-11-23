@@ -122,7 +122,7 @@ To use another source or a fixed version, change `git_url` and `ref`. `ref` must
 
 ### Repository Settings:
 
-A profile holds the complete settings of a repository: merge options, who may open pull requests, Actions permissions, Dependabot, immutable releases and the rulesets for branches and tags. `apply.sh` applies one profile to a repository.
+A profile holds the complete settings of a repository: merge options, who may open pull requests, Actions permissions, code scanning default setup, Dependabot, vulnerability reporting, immutable releases and the rulesets for branches and tags. `apply.sh` applies one profile to a repository.
 
 #### Profiles:
 
@@ -165,6 +165,8 @@ The script replaces a ruleset that has the same name as one in the profile and l
 | `web_commit_signoff_required`                                    | Commits made in the web interface need a sign off                                        | on           | on                | on                |
 | `secret_scanning`                                                | Scans the repository for secrets                                                         | on           | on                | on                |
 | `secret_scanning_push_protection`                                | Rejects pushes that contain secrets                                                      | on           | on                | on                |
+| `secret_scanning_non_provider_patterns`                          | Also scans for generic secrets such as private keys                                      | not set      | off               | not set           |
+| `secret_scanning_validity_checks`                                | Checks with the provider whether a found secret is still valid                           | not set      | off               | not set           |
 
 ##### Actions and Security
 
@@ -175,10 +177,12 @@ The script replaces a ruleset that has the same name as one in the profile and l
 | `sha_pinning_required`             | Workflows must reference actions by full commit SHA                              | not set    | on           | on        |
 | `default_workflow_permissions`     | Default permissions of `GITHUB_TOKEN`                                            | read       | read         | read      |
 | `can_approve_pull_request_reviews` | Workflows may approve pull requests                                              | no         | no           | no        |
+| `fork_pr_approval`                 | Workflow runs of fork pull requests that need approval by a maintainer           | not set    | all external contributors | not set |
+| `artifact_retention`               | Days that artifacts and logs of workflow runs are kept                           | not set    | 30           | not set   |
+| `code_scanning_default_setup`      | CodeQL default setup of GitHub. Code scanning runs only through workflows        | not set    | off          | not set   |
 | `dependabot`                       | Dependabot alerts and security updates                                           | off        | on           | on        |
-| `immutable_releases`               | Assets and tag of a published release can no longer be changed                   | not set    | not set      | on        |
-
-`apply.sh` only switches immutable releases on. A profile without the key leaves them as they are.
+| `private_vulnerability_reporting`  | Others may report a vulnerability privately to the maintainers                   | not set    | off          | not set   |
+| `immutable_releases`               | Assets and tag of a published release can no longer be changed                   | not set    | off          | on        |
 
 ##### Rulesets
 
