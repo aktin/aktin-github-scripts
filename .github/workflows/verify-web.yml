@@ -1,5 +1,6 @@
-# verify-web: full check of a bun project. Runs verify-common.yml, then format
-# check, lint, typecheck, test and build. The job verify passes only when both
+# verify-web: full check of a bun project. Runs verify-common.yml, then the
+# package.json scripts of the project: format:check, lint, typecheck, test and
+# build. The job verify passes only when verify-common and all these scripts
 # passed. Server side counterpart of hooks/lefthook-web.yml.
 #
 # Call it:      on pull_request and on push to the default branch
