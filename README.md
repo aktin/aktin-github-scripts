@@ -7,7 +7,7 @@ Setting up a new repository? Start with the [new repository guide](new-repositor
 ### Folder Structure:
 
 - **.github/workflows/**: Reusable GitHub workflows.
-- **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev), plus an example configuration for the pre-commit framework.
+- **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev).
 - **repo-settings/**: Repository settings profiles and a script that applies one to a repository.
 
 ### Workflows:
