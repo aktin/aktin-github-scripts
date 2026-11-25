@@ -1,6 +1,8 @@
 # Language profile for uv projects, used next to hooks/lefthook.yml.
 # Expects ruff, mypy and pytest as dev dependencies, configured in the
 # pyproject.toml.
+# Add hooks/lefthook-python.yml to the configs of the remote, see
+# hooks/lefthook.yml.
 
 pre-commit:
   commands:

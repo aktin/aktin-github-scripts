@@ -1,6 +1,6 @@
 # build-java: builds the jar of a Maven project with the version taken from
-# the tag, generates its SBOM and attests build provenance and the SBOM. The
-# input attest set to false skips the SBOM and both attestations.
+# the tag, generates its SBOM and attests build provenance and the SBOM. If
+# the input attest is set to false, the SBOM and both attestations are skipped.
 #
 # Call it:      on push of a tag v*
 # Permissions:  contents: read, id-token: write, attestations: write

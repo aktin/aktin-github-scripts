@@ -1,6 +1,8 @@
 # Language profile for Maven projects, used next to hooks/lefthook.yml.
 # Expects the Maven wrapper in the project root and Spotless and Checkstyle
 # configured in the pom.xml.
+# Add hooks/lefthook-java.yml to the configs of the remote, see
+# hooks/lefthook.yml.
 
 pre-commit:
   commands:

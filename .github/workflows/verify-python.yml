@@ -1,6 +1,7 @@
-# verify-python: full check of a uv project. Runs verify-common.yml, then
-# ruff, mypy, pytest and the build. The job verify passes only when both
-# passed. Server side counterpart of hooks/lefthook-python.yml.
+# verify-python: full check of a uv project. Runs verify-common.yml, then the
+# Python checks of the project: ruff, mypy, pytest and the build. The job
+# verify passes only when verify-common and all these steps passed. Server
+# side counterpart of hooks/lefthook-python.yml.
 #
 # Call it:      on pull_request and on push to the default branch
 # Permissions:  contents: read

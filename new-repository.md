@@ -11,9 +11,9 @@ The first stop when you set up a new AKTIN repository. Work through the six sect
 | Conventional Commits | The commit message format `<type>(<scope>): <subject>`, checked by one of the hooks                  |
 | Signed commit        | A commit that carries your GPG or SSH signature. The branch rules reject commits without one         |
 
-The git hooks are mandatory in every AKTIN repository. Nothing on the server forces you to install them, so installing them once in every clone is your duty.
+The git hooks are mandatory in every AKTIN repository. Nothing on the server forces you to install them, so installing them once in every clone is your duty. One of them rejects a commit message that does not follow Conventional Commits.
 
-Install these tools. All of them must be on your PATH:
+Install these tools. All of them must be on your PATH, the environment variable that lists the folders in which your shell looks for commands:
 
 | Tool                                                | Needed for                                                                              |
 |-----------------------------------------------------|-----------------------------------------------------------------------------------------|
@@ -28,7 +28,7 @@ Then do these two steps once per machine:
    ```bash
    gh auth login
    ```
-2. Set up commit signing as described in the [GitHub documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification).
+2. Set up signed commits as described in the [GitHub documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification).
 
 ### 2. Pick a starter
 
@@ -42,7 +42,7 @@ Then do these two steps once per machine:
 | [python-starter](https://github.com/akomii/python-starter) | Python packages          | uv (package and environment manager), ruff (linter and formatter), mypy (type checker), pytest (tests)                                                        |
 | [web-starter](https://github.com/akomii/web-starter)       | Vue web frontends        | bun (runtime and package manager), Vue 3 with TypeScript (UI framework), Vite (dev server and bundler), Vitest (tests), ESLint (linter), Prettier (formatter) |
 
-Every starter brings the shared git hooks, the workflows and a README that explains its tools. If no starter fits, ask in the team before you create the repository.
+Every starter is a template repository and brings the shared git hooks, the workflows and a README that explains its tools. If no starter fits, ask in the team before you create the repository.
 
 ### 3. Create the repository
 
@@ -60,6 +60,8 @@ Every starter brings the shared git hooks, the workflows and a README that expla
 
 Everyone who clones the repository later installs the hooks once as well. The command is in the README of the repository under "Getting started".
 
+The workflow files in `.github/workflows/` of the new repository call the reusable workflows of this repository.
+
 ### 4. Apply the settings
 
 | Term             | What it is                                                                                            |
@@ -68,9 +70,8 @@ Everyone who clones the repository later installs the hooks once as well. The co
 | Required check   | A workflow job that must pass before a pull request can be merged                                     |
 | Settings profile | A JSON file in `repo-settings/` that holds the complete settings of a repository                      |
 | Dependabot       | The GitHub service that reports vulnerable dependencies and opens pull requests that update them      |
-| CodeQL           | The static analysis of GitHub that scans the code for security flaws                                  |
 
-1. Pick a profile:
+1. Pick a settings profile:
 
    | Profile           | Use it when                          | Branches                                                                    |
    |-------------------|--------------------------------------|-----------------------------------------------------------------------------|
@@ -78,15 +79,15 @@ Everyone who clones the repository later installs the hooks once as well. The co
    | `release.json`    | The repository publishes releases    | Feature branches go to `dev`, `dev` goes to `main`, a release is a tag `v*` |
 
 2. Only for `release.json`: create the branch `dev` and point Dependabot at it, as described under "Branch `dev` for releases" in the README of your repository. Do this now, because the rulesets block direct pushes afterwards.
-3. Clone this repository and run the script from its root with your repository and the profile:
+3. Clone this repository and run the script from its root with your repository and the settings profile from step 1. Replace `<profile>` with `no-release` or `release`:
    ```bash
    git clone https://github.com/aktin/aktin-github-scripts
    cd aktin-github-scripts
-   repo-settings/apply.sh aktin/my-repository repo-settings/no-release.json
+   repo-settings/apply.sh aktin/my-repository repo-settings/<profile>.json
    ```
    The script prints one `ok` line per part it applied. It needs admin rights on the repository, which you have on a repository you created.
 
-What a profile contains is described under [Repository Settings](README.md#repository-settings).
+What a settings profile contains is described under [Repository Settings](README.md#repository-settings).
 
 ### 5. Manual steps
 
