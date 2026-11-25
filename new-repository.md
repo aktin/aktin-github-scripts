@@ -13,7 +13,7 @@ The first stop when you set up a new AKTIN repository. Work through the six sect
 
 The git hooks are mandatory in every AKTIN repository. Nothing on the server forces you to install them, so installing them once in every clone is your duty. One of them rejects a commit message that does not follow Conventional Commits.
 
-Install these tools. All of them must be on your PATH:
+Install these tools. All of them must be on your PATH, the environment variable that lists the folders in which your shell looks for commands:
 
 | Tool                                                | Needed for                                                                              |
 |-----------------------------------------------------|-----------------------------------------------------------------------------------------|
