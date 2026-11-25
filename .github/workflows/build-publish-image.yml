@@ -2,8 +2,8 @@
 # The calling repository brings a build script that builds the images
 # complete, with all tags and labels. This workflow runs the script and pushes
 # the images as they are, then generates the SBOM of each image and attests
-# build provenance and the SBOM. The input attest set to false skips SBOM and
-# attestations.
+# build provenance and the SBOM. If the input attest is set to false, the
+# SBOM and both attestations are skipped.
 #
 # Call it:      on push of a tag v*, or on a schedule to rebuild
 # Permissions:  contents: read, packages: write, id-token: write,
