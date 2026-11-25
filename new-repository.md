@@ -79,11 +79,11 @@ The workflow files in `.github/workflows/` of the new repository call the reusab
    | `release.json`    | The repository publishes releases    | Feature branches go to `dev`, `dev` goes to `main`, a release is a tag `v*` |
 
 2. Only for `release.json`: create the branch `dev` and point Dependabot at it, as described under "Branch `dev` for releases" in the README of your repository. Do this now, because the rulesets block direct pushes afterwards.
-3. Clone this repository and run the script from its root with your repository and the settings profile:
+3. Clone this repository and run the script from its root with your repository and the settings profile from step 1. Replace `<profile>` with `no-release` or `release`:
    ```bash
    git clone https://github.com/aktin/aktin-github-scripts
    cd aktin-github-scripts
-   repo-settings/apply.sh aktin/my-repository repo-settings/no-release.json
+   repo-settings/apply.sh aktin/my-repository repo-settings/<profile>.json
    ```
    The script prints one `ok` line per part it applied. It needs admin rights on the repository, which you have on a repository you created.
 
