@@ -204,7 +204,7 @@ The script replaces a ruleset that has the same name as one in the profile and l
 | Rule                                         | `template`: `default` | `no-release`: `default` | `release`: `default`                     | `release`: `dev`        | `release`: `release-tags`               |
 |----------------------------------------------|-----------------------|-------------------------|------------------------------------------|-------------------------|-----------------------------------------|
 | Applies to                                   | `main`                | `main`                  | `main`                                   | `dev`                   | tags `v*`                               |
-| May bypass                                   | nobody                | organization admins     | organization admins                      | organization admins     | organization admins, repository role 2  |
+| May bypass                                   | organization admins   | organization admins     | organization admins                      | organization admins     | organization admins, repository role 2  |
 | Blocks deletion                              | yes                   | yes                     | yes                                      | yes                     | yes                                     |
 | Blocks force pushes                          | yes                   | yes                     | yes                                      | yes                     |                                         |
 | Requires signed commits                      | yes                   | yes                     | yes                                      | yes                     |                                         |
