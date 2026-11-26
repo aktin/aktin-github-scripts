@@ -1,0 +1,72 @@
+# scan-image-eol: opens one issue per base image version of a container whose
+# end of life is at most lead-days away, with the dates from endoflife.date.
+# The version is the value of a key in the versions file. Before it looks up
+# the date, it searches for an issue titled "EOL: <product> <version>" in any
+# state and skips the version if one exists. The lookup uses the version cut
+# at the first "-" (8.4-apache becomes 8.4).
+#
+# Call it:      on a schedule
+# Permissions:  contents: read, issues: write
+# Expects:      a versions file of KEY=value lines that bash can source
+name: scan-image-eol
+
+on:
+  workflow_call:
+    inputs:
+      versions-file:
+        description: "Path of the versions file in the calling repository"
+        required: true
+        type: string
+      products:
+        description: 'JSON object from versions key to endoflife.date product, for example {"POSTGRESQL_VERSION": "postgresql"}'
+        required: true
+        type: string
+      lead-days:
+        description: "Days before the end of life from which an issue is opened"
+        required: false
+        type: number
+        default: 90
+
+permissions:
+  contents: read
+
+jobs:
+  eol:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: ${{ inputs.versions-file }}
+          sparse-checkout-cone-mode: false
+      - name: Open issues for upcoming end of life
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSIONS_FILE: ${{ inputs.versions-file }}
+          PRODUCTS: ${{ inputs.products }}
+          LEAD_DAYS: ${{ inputs.lead-days }}
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1090
+          . "./${VERSIONS_FILE}"
+          deadline="$(date -u -d "+${LEAD_DAYS} days" +%F)"
+          while read -r key product; do
+            version="${!key}"
+            title="EOL: ${product} ${version}"
+            if gh issue list --state all --search "in:title \"${title}\"" --json title \
+                | jq -e --arg t "$title" 'any(.[]; .title == $t)' > /dev/null; then
+              echo "${title}: issue exists"
+              continue
+            fi
+            eol="$(curl -fsS "https://endoflife.date/api/v1/products/${product}/releases/${version%%-*}" | jq -r '.result.eolFrom')"
+            echo "${title}: end of life ${eol}"
+            # eolFrom is null when no date is announced
+            if [[ "$eol" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ && ! "$eol" > "$deadline" ]]; then
+              gh issue create --title "$title" \
+                --body "${product} ${version} reaches end of life on ${eol}, see https://endoflife.date/${product}."
+            fi
+          done < <(jq -r 'to_entries[] | "\(.key) \(.value)"' <<< "$PRODUCTS")
