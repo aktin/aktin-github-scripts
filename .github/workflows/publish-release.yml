@@ -1,5 +1,7 @@
 # publish-release: publishes a GitHub Release with the files of earlier jobs
-# of the same run attached. Writes the release notes with git-cliff.
+# of the same run attached. It builds nothing itself, so a build-java.yml,
+# build-web.yml, build-python.yml or build-publish-image.yml job must run
+# before it. Writes the release notes with git-cliff.
 #
 # Call it:      on push of a tag v*, after the jobs that produce the files
 # Permissions:  contents: write

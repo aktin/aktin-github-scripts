@@ -1,6 +1,8 @@
 # Language profile for bun projects, used next to hooks/lefthook.yml.
 # Expects ESLint and Prettier as dev dependencies and the package.json scripts
 # typecheck, test and build.
+# Add hooks/lefthook-web.yml to the configs of the remote, see
+# hooks/lefthook.yml.
 
 pre-commit:
   commands:

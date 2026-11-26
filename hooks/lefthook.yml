@@ -7,6 +7,7 @@
 #       refetch_frequency: 24h
 #       configs:
 #         - hooks/lefthook.yml
+#         - hooks/lefthook-java.yml # optional language profile
 #
 # Requires lefthook >= 2.0.5 (script args) and python3, gitleaks, actionlint,
 # hadolint and shellcheck on PATH. A missing tool fails the commit, it is not
