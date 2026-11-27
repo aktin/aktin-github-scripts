@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck disable=SC2154 # name is set by new-repo.sh, which sources this hook
 # Asks for the Maven coordinates and derives the Java package from them.
 # Sourced by new-repo.sh before the summary. Exports GROUP_ID, ARTIFACT_ID,
 # PACKAGE and PACKAGE_PATH as placeholders.
