@@ -2,13 +2,15 @@
 
 Reusable GitHub workflows, git hooks and repository settings profiles for the AKTIN repositories.
 
-Setting up a new repository? Start with the [new repository guide](new-repository.md).
+Setting up a new repository? Run `new-repo.sh` as described in the [new repository guide](starter/README.md).
 
 ### Folder Structure:
 
 - **.github/workflows/**: Reusable GitHub workflows.
 - **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev).
 - **repo-settings/**: Repository settings profiles and a script that applies one to a repository.
+- **starter/**: Files for new repositories, one folder per stack plus `common/`, and the [new repository guide](starter/README.md).
+- **new-repo.sh**: Creates a repository from a stack in `starter/` and applies a settings profile.
 
 ### Workflows:
 
@@ -150,6 +152,8 @@ A profile holds the complete settings of a repository: merge options, who may op
 
 The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`.
 
+The key `description` is not a setting. `new-repo.sh` shows it when you pick a profile, so every profile except `template.json` needs one.
+
 #### Usage:
 
 Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. A repository created from a template does not inherit the settings of the template, so apply a profile to every new repository.
@@ -199,6 +203,7 @@ The script replaces a ruleset that has the same name as one in the profile and l
 | `dependabot`                       | Dependabot alerts and security updates                                           | off        | on           | on        |
 | `private_vulnerability_reporting`  | Others may report a vulnerability privately to the maintainers                   | off        | off          | off       |
 | `immutable_releases`               | Assets and tag of a published release can no longer be changed                   | off        | off          | on        |
+| `labels`                           | Deletes `duplicate` and `invalid`, creates `critical` and `minor`. Other labels stay | not set | yes          | yes       |
 
 ##### Rulesets
 

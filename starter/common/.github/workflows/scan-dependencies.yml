@@ -1,0 +1,19 @@
+name: scan-dependencies
+
+on:
+  pull_request:
+    branches:
+      - main
+      # profile:release:start
+      - dev
+      # profile:release:end
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: aktin/aktin-github-scripts/.github/workflows/scan-dependencies.yml@main

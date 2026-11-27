@@ -1,0 +1,12 @@
+min_version: 2.0.5
+
+# All hooks come from the shared config: the language independent ones from
+# hooks/lefthook.yml, format, lint and pre-push from the Python profile.
+# Change git_url and ref to use another source or pin a version.
+remotes:
+  - git_url: https://github.com/aktin/aktin-github-scripts
+    ref: main
+    refetch_frequency: 24h
+    configs:
+      - hooks/lefthook.yml
+      - hooks/lefthook-python.yml

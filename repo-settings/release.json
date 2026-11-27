@@ -1,4 +1,5 @@
 {
+  "description": "With release cycle (apps that are shipped or run in production, where a failure has real impact)",
   "repository": {
     "is_template": false,
     "has_issues": true,
@@ -39,6 +40,13 @@
   "dependabot": true,
   "private_vulnerability_reporting": false,
   "immutable_releases": true,
+  "labels": {
+    "delete": ["duplicate", "invalid"],
+    "create": [
+      { "name": "critical", "color": "B60205", "description": "Blocking release or core functionality" },
+      { "name": "minor", "color": "FEF2C0", "description": "Low impact issue" }
+    ]
+  },
   "rulesets": [
     {
       "name": "default",

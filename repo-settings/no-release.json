@@ -1,4 +1,5 @@
 {
+  "description": "Without release cycle (prototypes, simple or internal tools, where a failure has little impact)",
   "repository": {
     "is_template": false,
     "has_issues": true,
@@ -39,6 +40,13 @@
   "dependabot": true,
   "private_vulnerability_reporting": false,
   "immutable_releases": false,
+  "labels": {
+    "delete": ["duplicate", "invalid"],
+    "create": [
+      { "name": "critical", "color": "B60205", "description": "Blocking release or core functionality" },
+      { "name": "minor", "color": "FEF2C0", "description": "Low impact issue" }
+    ]
+  },
   "rulesets": [
     {
       "name": "default",
