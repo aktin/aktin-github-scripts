@@ -146,13 +146,12 @@ A profile holds the complete settings of a repository: merge options, who may op
 
 | Profile           | For                                                                                     | Protected refs           | Required checks                      |
 |-------------------|-----------------------------------------------------------------------------------------|--------------------------|--------------------------------------|
-| `template.json`   | Template repositories                                                                   | `main`                   | none                                 |
 | `no-release.json` | Repositories without a release process, feature branches go to `main`                   | `main`                   | `verify / verify`                    |
 | `release.json`    | Repositories with a release process, feature branches go to `dev`, `dev` goes to `main` | `main`, `dev`, tags `v*` | `verify / verify`, `review / review` |
 
 The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`.
 
-The key `description` is not a setting. `new-repo.sh` shows it when you pick a profile, so every profile except `template.json` needs one.
+The key `description` is not a setting. `new-repo.sh` shows it when you pick a profile, so every profile needs one.
 
 #### Usage:
 
@@ -168,63 +167,62 @@ The script replaces a ruleset that has the same name as one in the profile and l
 
 ##### Repository
 
-| Setting                                                          | What it does                                                                             | `template`   | `no-release`      | `release`         |
-|------------------------------------------------------------------|------------------------------------------------------------------------------------------|--------------|-------------------|-------------------|
-| `is_template`                                                    | Marks the repository as a template for new repositories                                  | yes          | no                | no                |
-| `has_issues`                                                     | Issues tab                                                                               | on           | on                | on                |
-| `has_projects`                                                   | Projects tab                                                                             | off          | on                | on                |
-| `has_wiki`                                                       | Wiki tab                                                                                 | off          | off               | off               |
-| `has_discussions`                                                | Discussions tab                                                                          | off          | off               | off               |
-| `has_pull_requests`                                              | Pull requests tab                                                                        | off          | not set           | not set           |
-| `pull_request_creation_policy`                                   | Who may open pull requests                                                               | not set      | collaborators     | collaborators     |
-| `allow_squash_merge`, `allow_merge_commit`, `allow_rebase_merge` | Merge methods the repository offers. The rulesets narrow them for the protected branches | all on       | all on            | all on            |
-| `allow_auto_merge`                                               | Merges a pull request on its own once all requirements are met                           | off          | off               | off               |
-| `allow_update_branch`                                            | Offers to update a pull request branch with the latest changes of its base branch        | on           | on                | on                |
-| `delete_branch_on_merge`                                         | Deletes the head branch after its pull request is merged                                 | on           | on                | on                |
-| `*_merge_commit_title`, `*_merge_commit_message`                 | Message of a squash or merge commit                                                      | PR title, no body | PR title, no body | PR title, no body |
-| `web_commit_signoff_required`                                    | Commits made in the web interface need a sign off                                        | on           | on                | on                |
-| `secret_scanning`                                                | Scans the repository for secrets                                                         | on           | on                | on                |
-| `secret_scanning_push_protection`                                | Rejects pushes that contain secrets                                                      | on           | on                | on                |
-| `secret_scanning_non_provider_patterns`                          | Also scans for generic secrets such as private keys                                      | off          | off               | off               |
-| `secret_scanning_validity_checks`                                | Checks with the provider whether a found secret is still valid                           | off          | off               | off               |
+| Setting                                                          | What it does                                                                             | `no-release`      | `release`         |
+|------------------------------------------------------------------|------------------------------------------------------------------------------------------|-------------------|-------------------|
+| `is_template`                                                    | Marks the repository as a template for new repositories                                  | no                | no                |
+| `has_issues`                                                     | Issues tab                                                                               | on                | on                |
+| `has_projects`                                                   | Projects tab                                                                             | on                | on                |
+| `has_wiki`                                                       | Wiki tab                                                                                 | off               | off               |
+| `has_discussions`                                                | Discussions tab                                                                          | off               | off               |
+| `pull_request_creation_policy`                                   | Who may open pull requests                                                               | collaborators     | collaborators     |
+| `allow_squash_merge`, `allow_merge_commit`, `allow_rebase_merge` | Merge methods the repository offers. The rulesets narrow them for the protected branches | all on            | all on            |
+| `allow_auto_merge`                                               | Merges a pull request on its own once all requirements are met                           | off               | off               |
+| `allow_update_branch`                                            | Offers to update a pull request branch with the latest changes of its base branch        | on                | on                |
+| `delete_branch_on_merge`                                         | Deletes the head branch after its pull request is merged                                 | on                | on                |
+| `*_merge_commit_title`, `*_merge_commit_message`                 | Message of a squash or merge commit                                                      | PR title, no body | PR title, no body |
+| `web_commit_signoff_required`                                    | Commits made in the web interface need a sign off                                        | on                | on                |
+| `secret_scanning`                                                | Scans the repository for secrets                                                         | on                | on                |
+| `secret_scanning_push_protection`                                | Rejects pushes that contain secrets                                                      | on                | on                |
+| `secret_scanning_non_provider_patterns`                          | Also scans for generic secrets such as private keys                                      | off               | off               |
+| `secret_scanning_validity_checks`                                | Checks with the provider whether a found secret is still valid                           | off               | off               |
 
 ##### Actions and Security
 
-| Setting                            | What it does                                                                     | `template` | `no-release` | `release` |
-|------------------------------------|----------------------------------------------------------------------------------|------------|--------------|-----------|
-| `enabled`                          | GitHub Actions                                                                   | off        | on           | on        |
-| `allowed_actions`                  | Actions that workflows may use                                                   | not set    | all          | all       |
-| `sha_pinning_required`             | Workflows must reference actions by full commit SHA                              | not set    | on           | on        |
-| `default_workflow_permissions`     | Default permissions of `GITHUB_TOKEN`                                            | read       | read         | read      |
-| `can_approve_pull_request_reviews` | Workflows may approve pull requests                                              | no         | no           | no        |
-| `fork_pr_approval`                 | Workflow runs of fork pull requests that need approval by a maintainer           | all external contributors | all external contributors | all external contributors |
-| `artifact_retention`               | Days that artifacts and logs of workflow runs are kept                           | 30         | 30           | 30        |
-| `code_scanning_default_setup`      | CodeQL default setup of GitHub. Code scanning runs only through workflows        | off        | off          | off       |
-| `dependabot`                       | Dependabot alerts and security updates                                           | off        | on           | on        |
-| `private_vulnerability_reporting`  | Others may report a vulnerability privately to the maintainers                   | off        | off          | off       |
-| `immutable_releases`               | Assets and tag of a published release can no longer be changed                   | off        | off          | on        |
-| `labels`                           | Deletes `duplicate` and `invalid`, creates `critical` and `minor`. Other labels stay | not set | yes          | yes       |
+| Setting                            | What it does                                                                     | `no-release` | `release` |
+|------------------------------------|----------------------------------------------------------------------------------|--------------|-----------|
+| `enabled`                          | GitHub Actions                                                                   | on           | on        |
+| `allowed_actions`                  | Actions that workflows may use                                                   | all          | all       |
+| `sha_pinning_required`             | Workflows must reference actions by full commit SHA                              | on           | on        |
+| `default_workflow_permissions`     | Default permissions of `GITHUB_TOKEN`                                            | read         | read      |
+| `can_approve_pull_request_reviews` | Workflows may approve pull requests                                              | no           | no        |
+| `fork_pr_approval`                 | Workflow runs of fork pull requests that need approval by a maintainer           | all external contributors | all external contributors |
+| `artifact_retention`               | Days that artifacts and logs of workflow runs are kept                           | 30           | 30        |
+| `code_scanning_default_setup`      | CodeQL default setup of GitHub. Code scanning runs only through workflows        | off          | off       |
+| `dependabot`                       | Dependabot alerts and security updates                                           | on           | on        |
+| `private_vulnerability_reporting`  | Others may report a vulnerability privately to the maintainers                   | off          | off       |
+| `immutable_releases`               | Assets and tag of a published release can no longer be changed                   | off          | on        |
+| `labels`                           | Deletes `duplicate` and `invalid`, creates `critical` and `minor`. Other labels stay | yes          | yes       |
 
 ##### Rulesets
 
-| Rule                                         | `template`: `default` | `no-release`: `default` | `release`: `default`                     | `release`: `dev`        | `release`: `release-tags`               |
-|----------------------------------------------|-----------------------|-------------------------|------------------------------------------|-------------------------|-----------------------------------------|
-| Applies to                                   | `main`                | `main`                  | `main`                                   | `dev`                   | tags `v*`                               |
-| May bypass                                   | nobody                | organization admins     | organization admins                      | organization admins     | organization admins, repository role 2  |
-| Blocks deletion                              | yes                   | yes                     | yes                                      | yes                     | yes                                     |
-| Blocks force pushes                          | yes                   | yes                     | yes                                      | yes                     |                                         |
-| Requires signed commits                      | yes                   | yes                     | yes                                      | yes                     |                                         |
-| Requires a pull request                      | no                    | yes                     | yes                                      | yes                     |                                         |
-| Allowed merge method                         |                       | squash                  | merge commit                             | squash                  |                                         |
-| Required approvals                           |                       | 0                       | 1                                        | 1                       |                                         |
-| Requires review by a code owner              |                       | no                      | yes                                      | no                      |                                         |
-| Dismisses approvals on new pushes            |                       | yes                     | yes                                      | no                      |                                         |
-| Last push must be approved by someone else   |                       | no                      | yes                                      | no                      |                                         |
-| Extra approval for unattributed changes      |                       | yes                     | yes                                      | yes                     |                                         |
-| All review threads must be resolved          |                       | yes                     | yes                                      | yes                     |                                         |
-| Required status checks                       |                       | `verify / verify`       | `verify / verify`, `review / review`     | `verify / verify`, `review / review` |                            |
-| Code scanning                                |                       |                         | CodeQL, fails on errors and on security alerts high or higher |   |                                         |
-| Blocks creation and update of tags           |                       |                         |                                          |                         | yes                                     |
+| Rule                                         | `no-release`: `default` | `release`: `default`                     | `release`: `dev`        | `release`: `release-tags`               |
+|----------------------------------------------|-------------------------|------------------------------------------|-------------------------|-----------------------------------------|
+| Applies to                                   | `main`                  | `main`                                   | `dev`                   | tags `v*`                               |
+| May bypass                                   | organization admins     | organization admins                      | organization admins     | organization admins, repository role 2  |
+| Blocks deletion                              | yes                     | yes                                      | yes                     | yes                                     |
+| Blocks force pushes                          | yes                     | yes                                      | yes                     |                                         |
+| Requires signed commits                      | yes                     | yes                                      | yes                     |                                         |
+| Requires a pull request                      | yes                     | yes                                      | yes                     |                                         |
+| Allowed merge method                         | squash                  | merge commit                             | squash                  |                                         |
+| Required approvals                           | 0                       | 1                                        | 1                       |                                         |
+| Requires review by a code owner              | no                      | yes                                      | no                      |                                         |
+| Dismisses approvals on new pushes            | yes                     | yes                                      | no                      |                                         |
+| Last push must be approved by someone else   | no                      | yes                                      | no                      |                                         |
+| Extra approval for unattributed changes      | yes                     | yes                                      | yes                     |                                         |
+| All review threads must be resolved          | yes                     | yes                                      | yes                     |                                         |
+| Required status checks                       | `verify / verify`       | `verify / verify`, `review / review`     | `verify / verify`, `review / review` |                            |
+| Code scanning                                |                         | CodeQL, fails on errors and on security alerts high or higher |   |                                         |
+| Blocks creation and update of tags           |                         |                                          |                         | yes                                     |
 
 An empty cell means the rule is not part of the ruleset. The status checks must come from GitHub Actions.
 
