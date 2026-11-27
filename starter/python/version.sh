@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Asks for the Python version and sets it in .python-version, as the floor in
 # requires-python and as the ruff target. Sourced by new-repo.sh in the new
 # repository.

@@ -317,5 +317,5 @@ if $local_only; then
   say "${green}${bold}✔ Built $name locally${reset} in $dest"
 else
   say "${green}${bold}✔ Created github.com/$owner/$name${reset} in $dest"
-  say "  Next: the manual steps in section 4 of starter/README.md"
+  say "  Next: the check in section 4 of starter/README.md"
 fi

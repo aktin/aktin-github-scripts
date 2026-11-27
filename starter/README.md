@@ -69,7 +69,7 @@ The script asks for:
 | Stack            | See section 2                                                                                                        |
 | Settings profile | With or without release cycle, see section 2                                                                         |
 | GitHub description | Mandatory. One line, shown on the repository page and as the subtitle of the README                                |
-| Code owners      | Who must approve every pull request into `main`, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
+| Code owners      | Who is asked to review every pull request into `main` and, with `release`, must approve it, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
 | Author           | Your name in the package metadata, for example `authors` in `pyproject.toml`. Your git `user.name` by default        |
 | Stack questions  | Asked by the stack. For Java the Maven groupId and artifactId before the summary, which also give the Java package. For web the package name. The language version after the summary, its minor or feature release also becomes the lowest supported one |
 
@@ -77,21 +77,12 @@ The script then makes the first commit, pushes `main`, creates `dev` if the prof
 
 When a step fails, fix the cause and run the script again with the same repository name. It keeps your answers in `.<name>.new-repo` next to the new folder, skips the steps that are done and removes the file at the end.
 
-### 4. Manual steps
-
-The script does not cover these settings. Set them by hand in the repository on GitHub:
-
-| Setting                | Where and what to do                                                                                                                                              | Why                                                                             |
-|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| Fork PR approval       | Settings → Actions → General → Approval for running fork pull request workflows from contributors. Select Require approval for all external contributors          | Keeps untrusted fork code from running workflows before a maintainer has looked |
-| Description and topics | Start page of the repository, gear icon next to About                                                                                                             | Others find the repository and see what it is for                               |
-
-### 5. Check
+### 4. Check
 
 1. Create a feature branch, commit a small change and push it. lefthook prints the hooks it ran during the commit. If it prints nothing, the hooks are not installed, go back to section 3.
 2. Open a pull request into `main`, or into `dev` if you applied `release.json`.
 3. Wait for the required checks. `verify / verify` must turn green, with `release.json` also `review / review`.
-4. Ask a team member for a review. The merge stays blocked until the checks are green and the pull request is approved. On `main` the approval must come from a code owner listed in `.github/CODEOWNERS`.
+4. With `release.json`, ask a team member for a review. The merge stays blocked until the checks are green and the pull request is approved. On `main` the approval must come from a code owner listed in `.github/CODEOWNERS`. With `no-release.json`, green checks and resolved review threads are enough.
 
 Once the pull request is merged, the repository is set up.
 

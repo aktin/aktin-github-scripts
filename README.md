@@ -156,7 +156,7 @@ The key `description` is not a setting. `new-repo.sh` shows it when you pick a p
 
 #### Usage:
 
-Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. A repository created from a template does not inherit the settings of the template, so apply a profile to every new repository.
+Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. `new-repo.sh` applies the profile to every repository it creates. Run `apply.sh` to apply a profile again or to an existing repository.
 
 ```bash
 repo-settings/apply.sh aktin/my-repository repo-settings/release.json
@@ -216,10 +216,10 @@ The script replaces a ruleset that has the same name as one in the profile and l
 | Requires signed commits                      | yes                   | yes                     | yes                                      | yes                     |                                         |
 | Requires a pull request                      | no                    | yes                     | yes                                      | yes                     |                                         |
 | Allowed merge method                         |                       | squash                  | merge commit                             | squash                  |                                         |
-| Required approvals                           |                       | 1                       | 1                                        | 1                       |                                         |
-| Requires review by a code owner              |                       | yes                     | yes                                      | no                      |                                         |
+| Required approvals                           |                       | 0                       | 1                                        | 1                       |                                         |
+| Requires review by a code owner              |                       | no                      | yes                                      | no                      |                                         |
 | Dismisses approvals on new pushes            |                       | yes                     | yes                                      | no                      |                                         |
-| Last push must be approved by someone else   |                       | yes                     | yes                                      | no                      |                                         |
+| Last push must be approved by someone else   |                       | no                      | yes                                      | no                      |                                         |
 | Extra approval for unattributed changes      |                       | yes                     | yes                                      | yes                     |                                         |
 | All review threads must be resolved          |                       | yes                     | yes                                      | yes                     |                                         |
 | Required status checks                       |                       | `verify / verify`       | `verify / verify`, `review / review`     | `verify / verify`, `review / review` |                            |
