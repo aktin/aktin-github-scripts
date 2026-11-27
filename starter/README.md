@@ -19,7 +19,7 @@ Install these tools. All of them must be on your PATH, the environment variable 
 |-----------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [gh](https://cli.github.com)                        | Creating the repository and applying its settings                                       |
 | [jq](https://jqlang.org)                            | Applying the settings                                                                   |
-| The build tool of your stack                        | Locking the dependencies and installing the hooks, for Python [uv](https://docs.astral.sh/uv/) |
+| The build tool of your stack                        | Locking the dependencies and installing the hooks, for Python [uv](https://docs.astral.sh/uv/), for Java a JDK and the [lefthook](https://lefthook.dev) binary |
 | python3, gitleaks, actionlint, hadolint, shellcheck | The shared hooks, see [Git Hooks](../README.md#git-hooks). A missing tool fails the commit |
 
 Then do these two steps once per machine:
@@ -41,9 +41,10 @@ Then do these two steps once per machine:
 
 | Stack    | For             | Tools                                                                                     |
 |----------|-----------------|-------------------------------------------------------------------------------------------|
+| `java`   | Java applications | Maven wrapper (build), Spring Boot (application), Spotless (formatter), Checkstyle (linter), JUnit 5 and JaCoCo (tests and coverage) |
 | `python` | Python packages | uv (package and environment manager), ruff (linter and formatter), mypy (type checker), pytest (tests) |
 
-Java and web are still the template repositories [java-starter](https://github.com/akomii/java-starter) and [web-starter](https://github.com/akomii/web-starter). Create them with `gh repo create --template` and apply the profile with `repo-settings/apply.sh` as described in [Repository Settings](../README.md#repository-settings).
+Web is still the template repository [web-starter](https://github.com/akomii/web-starter). Create it with `gh repo create --template` and apply the profile with `repo-settings/apply.sh` as described in [Repository Settings](../README.md#repository-settings).
 
 | Profile      | Use it when                          | Branches                                                                    |
 |--------------|--------------------------------------|-----------------------------------------------------------------------------|
