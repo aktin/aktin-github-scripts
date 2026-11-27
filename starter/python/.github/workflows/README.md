@@ -90,7 +90,7 @@ Branch ruleset `default` on `main`:
 
 | Rule | Meaning |
 | --- | --- |
-| Pull request required | No direct pushes. Squash merge only. 1 approval, code owner review, approvals dismissed by a new push, approval after the last push, all review threads resolved |
+| Pull request required | No direct pushes. Squash merge only. No approval needed, all review threads resolved |
 | Required checks | `verify / verify` must pass |
 | Signed commits | Every commit on `main` is signed. Squash merge commits are signed by GitHub |
 | No force push, no delete | History on `main` is append-only |

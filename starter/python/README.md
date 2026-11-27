@@ -62,7 +62,12 @@ The repository was created with `new-repo.sh` from [aktin-github-scripts](https:
 repo-settings/apply.sh {{REPO_SLUG}} repo-settings/{{PROFILE}}.json
 ```
 
-The code owners in `.github/CODEOWNERS` review every pull request into `main`.
+<!-- profile:release:start -->
+The code owners in `.github/CODEOWNERS` must approve every pull request into `main`.
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+GitHub asks the code owners in `.github/CODEOWNERS` for a review of every pull request into `main`. The merge does not wait for it.
+<!-- profile:no-release:end -->
 
 <!-- profile:release:start -->
 ### Branch `dev` for releases
