@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Creates a new AKTIN repository from a starter and applies a settings profile.
-# Usage:    new-repo.sh
+# Usage:    new-repo.sh [--local]
+#           --local builds the repository only locally, logs the GitHub steps
+#           as skipped and copies the profile it would apply to repo-settings/.
 # Requires: git, jq, gh logged in, and the tools the setup.sh of the stack calls.
 #
 # A stack is a folder in starter/. Its files are copied over those of its
@@ -28,6 +30,13 @@ say() { printf '%s\n' "$*" >&2; }
 step() { say "" "${bold}${cyan}▸ $*${reset}"; }
 done_step() { say "${green}✔${reset} $*"; }
 fail() { say "${red}✘ $*${reset}"; exit 1; }
+skipped() { say "${dim}↷ $* (skipped, --local)${reset}"; }
+
+case "${1:-}" in
+  "") local_only=false ;;
+  --local) local_only=true ;;
+  *) fail "Usage: new-repo.sh [--local]" ;;
+esac
 
 # Prints a question with an optional hint line below it.
 question() {
@@ -150,6 +159,7 @@ say ""
 say "${bold}Summary${reset}"
 say "  Repository   github.com/$owner/$name ($visibility)"
 say "  Local folder $dest"
+if $local_only; then say "  ${bold}Mode         --local, nothing is created on GitHub${reset}"; fi
 say "  Stack        $stack"
 say "  Profile      $profile"
 say "  Code owners  $codeowners"
@@ -184,19 +194,35 @@ git -C "$dest" commit -S -q -m "chore: create the repository from the $stack sta
 done_step "Signed commit on main"
 
 step "Creating github.com/$owner/$name"
-gh repo create "$owner/$name" "--$visibility" --description "$description" --source "$dest" --push
+if $local_only; then
+  skipped "gh repo create $owner/$name --$visibility --push"
+else
+  gh repo create "$owner/$name" "--$visibility" --description "$description" --source "$dest" --push
+fi
 
 # Branches other than main that the profile protects must exist before its
 # rulesets block direct pushes.
 jq -r '.rulesets[] | select(.target == "branch") | .conditions.ref_name.include[]
   | sub("^refs/heads/"; "") | select(. != "main")' "$settings/$profile.json" | while read -r branch; do
-  git -C "$dest" push -q origin "main:$branch"
-  done_step "Branch $branch"
+  if $local_only; then
+    git -C "$dest" branch "$branch" main
+    skipped "Push of branch $branch, created locally"
+  else
+    git -C "$dest" push -q origin "main:$branch"
+    done_step "Branch $branch"
+  fi
 done
 
 step "Applying the settings profile $profile"
-"$settings/apply.sh" "$owner/$name" "$settings/$profile.json"
-
-say ""
-say "${green}${bold}✔ Created github.com/$owner/$name${reset} in $dest"
-say "  Next: the manual steps in section 4 of starter/README.md"
+if $local_only; then
+  mkdir "$dest/repo-settings"
+  cp "$settings/$profile.json" "$dest/repo-settings/"
+  skipped "apply.sh, the profile is in $dest/repo-settings/$profile.json"
+  say ""
+  say "${green}${bold}✔ Built $name locally${reset} in $dest"
+else
+  "$settings/apply.sh" "$owner/$name" "$settings/$profile.json"
+  say ""
+  say "${green}${bold}✔ Created github.com/$owner/$name${reset} in $dest"
+  say "  Next: the manual steps in section 4 of starter/README.md"
+fi

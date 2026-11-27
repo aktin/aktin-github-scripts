@@ -73,7 +73,7 @@ The script asks for:
 | Code owners      | Who must approve every pull request into `main`, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
 | Author           | Your name in the package metadata, for example `authors` in `pyproject.toml`. Your git `user.name` by default        |
 
-The script then makes the first commit, pushes `main`, creates `dev` if the profile protects it and applies the profile. It prints one `ok` line per part of the profile. What a profile contains is described under [Repository Settings](../README.md#repository-settings).
+The script then makes the first commit, pushes `main`, creates `dev` if the profile protects it and applies the profile. To try a stack or profile without GitHub, run `new-repo.sh --local`. It builds the same local repository, logs the GitHub steps as skipped and copies the profile it would apply to `repo-settings/` in the new folder. It prints one `ok` line per part of the profile. What a profile contains is described under [Repository Settings](../README.md#repository-settings).
 
 ### 4. Manual steps
 
