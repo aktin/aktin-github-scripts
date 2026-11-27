@@ -8,3 +8,30 @@ updates:
       actions:
         patterns:
           - "*"
+  # The starters in starter/ are copied into new repositories, which bring
+  # their own Dependabot configuration. These entries only keep Dependabot
+  # from opening pull requests for the starter manifests here.
+  - package-ecosystem: npm
+    directory: /
+    exclude-paths:
+      - "starter/**"
+    schedule:
+      interval: weekly
+  - package-ecosystem: bun
+    directory: /
+    exclude-paths:
+      - "starter/**"
+    schedule:
+      interval: weekly
+  - package-ecosystem: uv
+    directory: /
+    exclude-paths:
+      - "starter/**"
+    schedule:
+      interval: weekly
+  - package-ecosystem: maven
+    directory: /
+    exclude-paths:
+      - "starter/**"
+    schedule:
+      interval: weekly
