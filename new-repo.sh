@@ -16,26 +16,55 @@ root=$(cd "$(dirname "$0")" && pwd)
 starters="$root/starter"
 settings="$root/repo-settings"
 
+# Colors only on a terminal and only when NO_COLOR is not set.
+if [ -t 2 ] && [ -z "${NO_COLOR:-}" ]; then
+  bold=$'\e[1m' dim=$'\e[2m' red=$'\e[31m' green=$'\e[32m' cyan=$'\e[36m' reset=$'\e[0m'
+else
+  bold="" dim="" red="" green="" cyan="" reset=""
+fi
+
+# All output for the user goes to stderr, stdout carries the answers.
+say() { printf '%s\n' "$*" >&2; }
+step() { say "" "${bold}${cyan}▸ $*${reset}"; }
+done_step() { say "${green}✔${reset} $*"; }
+fail() { say "${red}✘ $*${reset}"; exit 1; }
+
+# Prints a question with an optional hint line below it.
+question() {
+  say ""
+  say "${bold}${cyan}?${reset} ${bold}$1${reset}"
+  if [ -n "${2:-}" ]; then say "  ${dim}$2${reset}"; fi
+}
+
 # Asks a question and prints the answer, or the default when it is empty.
 ask() {
   local answer
-  read -rp "$1${2:+ [$2]}: " answer
+  question "$1" "${3:-}"
+  read -rp "  ${2:+${dim}[$2]${reset} }› " answer
   echo "${answer:-${2:-}}"
 }
 
 # Asks until the answer is not empty and prints it.
 ask_required() {
   local answer=""
-  while [ -z "$answer" ]; do read -rp "$1: " answer; done
+  question "$1" "${2:-}"
+  while [ -z "$answer" ]; do read -rp "  › " answer; done
   echo "$answer"
 }
 
 # Lets the user pick one of the options and prints its index, counted from 0.
 choose() {
-  local PS3="$1: " choice
+  local title="$1" i answer
   shift
-  select choice in "$@"; do
-    [ -n "$choice" ] && { echo $((REPLY - 1)); return; }
+  question "$title"
+  i=1
+  for option in "$@"; do say "  ${cyan}$i)${reset} $option"; i=$((i + 1)); done
+  while true; do
+    read -rp "  › " answer
+    if [[ "$answer" =~ ^[0-9]+$ ]] && [ "$answer" -ge 1 ] && [ "$answer" -le $# ]; then
+      echo $((answer - 1))
+      return
+    fi
   done
 }
 
@@ -91,7 +120,7 @@ render() {
 }
 
 for tool in git jq gh; do
-  command -v "$tool" >/dev/null || { echo "$tool is missing" >&2; exit 1; }
+  command -v "$tool" >/dev/null || fail "$tool is missing"
 done
 
 mapfile -t stacks < <(find "$starters" -mindepth 1 -maxdepth 1 -type d ! -name common -printf '%f\n' | sort)
@@ -100,39 +129,61 @@ profile_labels=()
 for p in "${profiles[@]}"; do profile_labels+=("$(jq -r .description "$settings/$p.json")"); done
 
 me=$(gh api user --jq .login)
-echo "The repository is created on GitHub at github.com/<account>/<name> and cloned into $PWD/<name>."
-owner=$(ask "GitHub account, an organization or your user" aktin)
-name=$(ask_required "Repository name, also the project and package name")
+say "${bold}New AKTIN repository${reset}"
+say "${dim}Creates github.com/<account>/<name> and clones it into $PWD/<name>.${reset}"
+
+owner=$(ask "GitHub account" aktin "Organization or user the repository belongs to")
+name=$(ask_required "Repository name" "Also the local folder, the project name and the package name")
+dest="$PWD/$name"
+[ ! -e "$dest" ] || fail "$dest already exists"
 stack=${stacks[$(choose "Stack" "${stacks[@]}")]}
 profile=${profiles[$(choose "Settings profile" "${profile_labels[@]}")]}
 visibilities=(public private)
-visibility=${visibilities[$(choose "Visibility. Private needs paid GitHub features" "${visibilities[@]}")]}
-description=$(ask_required "GitHub description, one line shown on the repository page and in the README")
-read -ra others <<<"$(ask "Code owners besides @$me, who must approve pull requests into main. Separate by spaces, for example @alice @aktin/devs. Empty for none")"
+visibility=${visibilities[$(choose "Visibility" "public" "private (needs paid GitHub features)")]}
+description=$(ask_required "GitHub description" "One line, shown on the repository page and in the README")
+read -ra others <<<"$(ask "Code owners besides @$me" "" "Must approve pull requests into main. Separate by spaces, for example @alice @aktin/devs. Empty for none")"
 codeowners="@$me"
 for other in "${others[@]}"; do codeowners+=" @${other#@}"; done
-author=$(ask "Author name in the package metadata, for example pyproject.toml" "$(git config user.name || true)")
+author=$(ask "Author" "$(git config user.name || true)" "Your name in the package metadata, for example pyproject.toml")
 
-dest="$PWD/$name"
-[ ! -e "$dest" ] || { echo "$dest already exists" >&2; exit 1; }
+say ""
+say "${bold}Summary${reset}"
+say "  Repository   github.com/$owner/$name ($visibility)"
+say "  Local folder $dest"
+say "  Stack        $stack"
+say "  Profile      $profile"
+say "  Code owners  $codeowners"
+say "  Author       $author"
+say "  Description  $description"
+read -rp "  Create it? [y/N] › " confirm
+[[ "$confirm" =~ ^[yY]$ ]] || fail "Cancelled, nothing was created"
 
 module=$(tr '[:upper:]' '[:lower:]' <<<"$name" | tr '.-' '__')
 export TPL_PROJECT_NAME="$name" TPL_REPO_SLUG="$owner/$name" TPL_DESCRIPTION="$description" \
   TPL_OWNER="$me" TPL_CODEOWNERS="$codeowners" TPL_AUTHOR="$author" TPL_PROFILE="$profile" TPL_MODULE="$module"
 
+step "Copying the starter files"
 mkdir "$dest"
 mapfile -t stack_layers < <(layers "$stack")
 for layer in "${stack_layers[@]}"; do copy_layer "$layer"; done
 render
+done_step "Layers ${stack_layers[*]}"
 
+step "Setting up the stack"
 git -C "$dest" init -q -b main
 for layer in "${stack_layers[@]}"; do
   if [ -f "$starters/$layer/setup.sh" ]; then (cd "$dest" && bash "$starters/$layer/setup.sh"); fi
 done
+done_step "Dependencies and git hooks installed"
+
+step "First commit"
 git -C "$dest" add -A
 # The first commit holds the whole starter, so it skips the commit size hook.
 git -C "$dest" commit -S -q -m "chore: create the repository from the $stack starter [skip-size]"
 
+done_step "Signed commit on main"
+
+step "Creating github.com/$owner/$name"
 gh repo create "$owner/$name" "--$visibility" --description "$description" --source "$dest" --push
 
 # Branches other than main that the profile protects must exist before its
@@ -140,7 +191,12 @@ gh repo create "$owner/$name" "--$visibility" --description "$description" --sou
 jq -r '.rulesets[] | select(.target == "branch") | .conditions.ref_name.include[]
   | sub("^refs/heads/"; "") | select(. != "main")' "$settings/$profile.json" | while read -r branch; do
   git -C "$dest" push -q origin "main:$branch"
+  done_step "Branch $branch"
 done
 
+step "Applying the settings profile $profile"
 "$settings/apply.sh" "$owner/$name" "$settings/$profile.json"
-echo "Created $owner/$name in $dest. Do the manual steps in starter/README.md section 4."
+
+say ""
+say "${green}${bold}✔ Created github.com/$owner/$name${reset} in $dest"
+say "  Next: the manual steps in section 4 of starter/README.md"
