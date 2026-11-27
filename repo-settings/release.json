@@ -40,6 +40,13 @@
   "dependabot": true,
   "private_vulnerability_reporting": false,
   "immutable_releases": true,
+  "labels": {
+    "delete": ["duplicate", "invalid"],
+    "create": [
+      { "name": "critical", "color": "B60205", "description": "Blocking release or core functionality" },
+      { "name": "minor", "color": "FEF2C0", "description": "Low impact issue" }
+    ]
+  },
   "rulesets": [
     {
       "name": "default",

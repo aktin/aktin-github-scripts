@@ -57,6 +57,18 @@ jq -c '.rulesets[]' "$profile" | while read -r ruleset; do
   apply_ruleset "$ruleset"
 done
 
+# Deletes the listed labels that exist and creates or updates the others.
+existing=$(gh label list -R "$repo" --limit 1000 --json name --jq '.[].name')
+jq -r '.labels.delete[]?' "$profile" | while read -r label; do
+  if grep -qxF "$label" <<<"$existing"; then gh label delete "$label" -R "$repo" --yes >/dev/null; fi
+  echo "ok  label $label deleted"
+done
+jq -c '.labels.create[]?' "$profile" | while read -r label; do
+  gh label create "$(jq -r .name <<<"$label")" -R "$repo" --force \
+    --color "$(jq -r .color <<<"$label")" --description "$(jq -r .description <<<"$label")"
+  echo "ok  label $(jq -r .name <<<"$label")"
+done
+
 # A profile without the key leaves immutable releases untouched.
 case "$(jq -r .immutable_releases "$profile")" in
   true)  gh api -X PUT "repos/$repo/immutable-releases" && echo "ok  immutable releases on" ;;

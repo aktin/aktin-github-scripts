@@ -81,7 +81,6 @@ The script does not cover these settings. Set them by hand in the repository on 
 | Setting                | Where and what to do                                                                                                                                              | Why                                                                             |
 |------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
 | Fork PR approval       | Settings → Actions → General → Approval for running fork pull request workflows from contributors. Select Require approval for all external contributors          | Keeps untrusted fork code from running workflows before a maintainer has looked |
-| Labels                 | Issues → Labels. Delete `duplicate` and `invalid`, add `critical` (`B60205`, "Blocking release or core functionality") and `minor` (`FEF2C0`, "Low impact issue") | Same triage labels in every repository                                          |
 | Description and topics | Start page of the repository, gear icon next to About                                                                                                             | Others find the repository and see what it is for                               |
 
 ### 5. Check

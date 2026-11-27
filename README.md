@@ -203,6 +203,7 @@ The script replaces a ruleset that has the same name as one in the profile and l
 | `dependabot`                       | Dependabot alerts and security updates                                           | off        | on           | on        |
 | `private_vulnerability_reporting`  | Others may report a vulnerability privately to the maintainers                   | off        | off          | off       |
 | `immutable_releases`               | Assets and tag of a published release can no longer be changed                   | off        | off          | on        |
+| `labels`                           | Deletes `duplicate` and `invalid`, creates `critical` and `minor`. Other labels stay | not set | yes          | yes       |
 
 ##### Rulesets
 
