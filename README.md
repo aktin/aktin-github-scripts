@@ -156,7 +156,7 @@ The key `description` is not a setting. `new-repo.sh` shows it when you pick a p
 
 #### Usage:
 
-Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. A repository created from a template does not inherit the settings of the template, so apply a profile to every new repository.
+Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. `new-repo.sh` applies the profile to every repository it creates. Run `apply.sh` to apply a profile again or to an existing repository.
 
 ```bash
 repo-settings/apply.sh aktin/my-repository repo-settings/release.json

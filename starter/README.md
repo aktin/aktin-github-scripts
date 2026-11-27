@@ -77,16 +77,7 @@ The script then makes the first commit, pushes `main`, creates `dev` if the prof
 
 When a step fails, fix the cause and run the script again with the same repository name. It keeps your answers in `.<name>.new-repo` next to the new folder, skips the steps that are done and removes the file at the end.
 
-### 4. Manual steps
-
-The script does not cover these settings. Set them by hand in the repository on GitHub:
-
-| Setting                | Where and what to do                                                                                                                                              | Why                                                                             |
-|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| Fork PR approval       | Settings → Actions → General → Approval for running fork pull request workflows from contributors. Select Require approval for all external contributors          | Keeps untrusted fork code from running workflows before a maintainer has looked |
-| Description and topics | Start page of the repository, gear icon next to About                                                                                                             | Others find the repository and see what it is for                               |
-
-### 5. Check
+### 4. Check
 
 1. Create a feature branch, commit a small change and push it. lefthook prints the hooks it ran during the commit. If it prints nothing, the hooks are not installed, go back to section 3.
 2. Open a pull request into `main`, or into `dev` if you applied `release.json`.
