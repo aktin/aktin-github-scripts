@@ -72,7 +72,7 @@ The script asks for:
 | GitHub description | Mandatory. One line, shown on the repository page and as the subtitle of the README                                |
 | Code owners      | Who must approve every pull request into `main`, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
 | Author           | Your name in the package metadata, for example `authors` in `pyproject.toml`. Your git `user.name` by default        |
-| Stack questions  | Asked after the summary, for example the Python version. Its minor version also becomes the lowest supported one     |
+| Stack questions  | Asked by the stack. For Java the Maven groupId and artifactId before the summary, which also give the Java package. The language version after the summary, its minor or feature release also becomes the lowest supported one |
 
 The script then makes the first commit, pushes `main`, creates `dev` if the profile protects it and applies the profile. To try a stack or profile without GitHub, run `new-repo.sh --local`. It builds the same local repository, logs the GitHub steps as skipped and copies the profile it would apply to `repo-settings/` in the new folder. It prints one `ok` line per part of the profile. What a profile contains is described under [Repository Settings](../README.md#repository-settings).
 
@@ -104,6 +104,7 @@ A stack folder only holds what differs from `common/` and its parent stacks. The
 |-----------------------|-----------------------------------------------------------------------------------------------|
 | `profile/<profile>/`  | Files only for that profile, for example `release.yml`. Not copied for other profiles        |
 | `requirements.sh`     | Checks the tools of the stack with `need <tool>...`, before anything is created              |
+| `questions.sh`        | Asks stack questions before the summary and exports each answer as `TPL_<NAME>`, which fills `{{NAME}}` |
 | `version.sh`          | Asks for the language version and sets it in the new repository                              |
 | `setup.sh`            | Runs in the new repository after the copy, for example to lock dependencies and install hooks |
 | Hooks in general      | Sourced, so they can use `say`, `ask`, `need` and `fail` of `new-repo.sh`. Never copied      |

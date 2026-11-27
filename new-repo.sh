@@ -12,6 +12,8 @@
 # In a layer, profile/<profile>/ holds files for that profile only. These
 # optional hooks are sourced, so they can use say, ask, need and fail:
 #   requirements.sh  checks the tools of the layer, before anything is created
+#   questions.sh     asks stack questions before the summary and exports their
+#                    answers as TPL_<NAME>, which fills {{NAME}}
 #   version.sh       asks for the language version and sets it, in the new repository
 #   setup.sh         installs dependencies and git hooks, in the new repository
 # Neither profile/ nor a hook is copied.
@@ -136,7 +138,7 @@ run_hooks() {
 # Copies the files of one layer, without its profile folder and hooks.
 copy_layer() {
   local src="$starters/$1"
-  (cd "$src" && tar -c --exclude=./profile --exclude=./requirements.sh --exclude=./version.sh --exclude=./setup.sh .) |
+  (cd "$src" && tar -c --exclude=./profile --exclude=./requirements.sh --exclude=./questions.sh --exclude=./version.sh --exclude=./setup.sh .) |
     tar -x -C "$dest"
   if [ -d "$src/profile/$profile" ]; then cp -a "$src/profile/$profile/." "$dest/"; fi
 }
@@ -144,14 +146,17 @@ copy_layer() {
 # Fills the placeholders in all file contents, keeping the file modes, then
 # in file and folder names.
 render() {
-  local file path
+  local file path target
   grep -rlIE '\{\{[A-Z_]+\}\}|profile:[a-z-]+:(start|end)' "$dest" | while read -r file; do
     fill <"$file" >"$file.tmp"
     cat "$file.tmp" >"$file"
     rm "$file.tmp"
   done
   find "$dest" -depth -name '*{{*}}*' | while read -r path; do
-    mv "$path" "$(dirname "$path")/$(basename "$path" | fill)"
+    # A value with slashes, like a Java package path, becomes nested folders.
+    target="$(dirname "$path")/$(basename "$path" | fill)"
+    mkdir -p "$(dirname "$target")"
+    mv "$path" "$target"
   done
 }
 
@@ -272,6 +277,11 @@ else
   for other in "${others[@]}"; do codeowners+=" @${other#@}"; done
   author=$(ask "Author" "$(git config user.name || true)" "Your name in the package metadata, for example pyproject.toml")
 
+  for layer in "${stack_layers[@]}"; do
+    # shellcheck source=/dev/null
+    if [ -f "$starters/$layer/questions.sh" ]; then source "$starters/$layer/questions.sh"; fi
+  done
+
   say ""
   say "${bold}Summary${reset}"
   say "  Repository   github.com/$owner/$name (public)"
@@ -281,10 +291,12 @@ else
   say "  Profile      $profile"
   say "  Code owners  $codeowners"
   say "  Author       $author"
+  for var in $(compgen -v TPL_); do say "  ${var#TPL_}  ${!var}"; done
   say "  Description  $description"
   read -rp "  Create it? [y/N] › " confirm
   [[ "$confirm" =~ ^[yY]$ ]] || fail "Cancelled, nothing was created"
   declare -p owner name stack profile description codeowners author local_only >"$state"
+  for var in $(compgen -v TPL_); do declare -p "$var" >>"$state"; done
 fi
 
 module=$(tr '[:upper:]' '[:lower:]' <<<"$name" | tr '.-' '__')
