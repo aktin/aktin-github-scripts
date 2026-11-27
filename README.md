@@ -2,13 +2,15 @@
 
 Reusable GitHub workflows, git hooks and repository settings profiles for the AKTIN repositories.
 
-Setting up a new repository? Start with the [new repository guide](new-repository.md).
+Setting up a new repository? Run `new-repo.sh` as described in the [new repository guide](starter/README.md).
 
 ### Folder Structure:
 
 - **.github/workflows/**: Reusable GitHub workflows.
 - **hooks/**: Shared git hooks for [lefthook](https://lefthook.dev).
 - **repo-settings/**: Repository settings profiles and a script that applies one to a repository.
+- **starter/**: Files for new repositories, one folder per stack plus `common/`, and the [new repository guide](starter/README.md).
+- **new-repo.sh**: Creates a repository from a stack in `starter/` and applies a settings profile.
 
 ### Workflows:
 

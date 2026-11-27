@@ -138,4 +138,4 @@ jq -r '.rulesets[] | select(.target == "branch") | .conditions.ref_name.include[
 done
 
 "$settings/apply.sh" "$owner/$name" "$settings/$profile.json"
-echo "Created $owner/$name in $dest. Do the manual steps in new-repository.md section 5."
+echo "Created $owner/$name in $dest. Do the manual steps in starter/README.md section 4."
