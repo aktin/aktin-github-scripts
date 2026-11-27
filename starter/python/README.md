@@ -1,36 +1,12 @@
 # {{PROJECT_NAME}}
 
-<!-- template:start -->
-
-> This repository was created from the `python-starter` template. Do this one-time setup before anything else:
->
-> 1. Install the dependencies and fill in the placeholders. The script reads your `git remote` to guess the slug and asks for the rest:
->    ```sh
->    uv sync
->    uv run python scripts/init.py
->    ```
-> 2. Install the git hooks:
->    ```sh
->    uv run lefthook install
->    ```
-> 3. Sync the renamed package, review the diff, then commit and push it, for example:
->    ```sh
->    uv sync
->    git add -A
->    git commit -m "chore: fill in the template placeholders"
->    git push
->    ```
-> 4. Do the GitHub steps under [Repository settings](#repository-settings).
->
-> `init.py` rewrites the placeholders (`{{PROJECT_NAME}}`, `{{REPO_SLUG}}`, `{{DESCRIPTION}}`, `{{AUTHOR}}`, `{{OWNER}}`) across the repo, renames the `python_starter` package, strips this banner and deletes itself.
-
-<!-- template:end -->
-
 [![Verify](https://github.com/{{REPO_SLUG}}/actions/workflows/verify.yml/badge.svg)](https://github.com/{{REPO_SLUG}}/actions/workflows/verify.yml)
 [![CodeQL](https://github.com/{{REPO_SLUG}}/actions/workflows/scan-codeql.yml/badge.svg)](https://github.com/{{REPO_SLUG}}/actions/workflows/scan-codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/{{REPO_SLUG}}/badge)](https://securityscorecards.dev/viewer/?uri=github.com/{{REPO_SLUG}})
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+<!-- profile:release:start -->
 [![Release](https://img.shields.io/github/v/release/{{REPO_SLUG}})](https://github.com/{{REPO_SLUG}}/releases)
+<!-- profile:release:end -->
 
 # {{DESCRIPTION}}
 
@@ -62,6 +38,7 @@ Commits must follow [Conventional Commits](https://www.conventionalcommits.org),
 
 Allowed types are `feat fix docs style refactor perf test chore`, the subject starts lowercase and has no trailing period, every line of the message stays at most 100 characters.
 
+<!-- profile:release:start -->
 To cut a release, check out the commit on `main` that you want to release, tag it `vX.Y.Z` and push the tag. Example for version 1.2.3:
 
 ```sh
@@ -70,33 +47,27 @@ git push origin v1.2.3
 ```
 
 The tag starts `release.yml`, see [Workflows](.github/workflows/README.md#workflows).
+<!-- profile:release:end -->
 
 ## Repository settings
 
-GitHub copies only the files of a template, not its settings or rulesets. Apply them once after `scripts/init.py`, as described from section 4 on in the [new repository guide](https://github.com/aktin/aktin-github-scripts/blob/main/new-repository.md) of aktin-github-scripts.
+The repository was created with `new-repo.sh` from [aktin-github-scripts](https://github.com/aktin/aktin-github-scripts), which also applied the settings profile `{{PROFILE}}.json`. To apply the profile again, run from the root of aktin-github-scripts:
 
-The code owners in `.github/CODEOWNERS` review every pull request into `main`. The init script suggests `akomii`. Enter whoever is responsible for the reviews in this repository.
+```sh
+repo-settings/apply.sh {{REPO_SLUG}} repo-settings/{{PROFILE}}.json
+```
 
+The code owners in `.github/CODEOWNERS` review every pull request into `main`.
+
+<!-- profile:release:start -->
 ### Branch `dev` for releases
 
-A repository that publishes releases uses the settings profile `release.json`. Features collect on `dev`, `dev` goes to `main` and `main` mirrors the released state. Do these steps before you apply the profile, because its rulesets block direct pushes afterwards. A repository without releases uses `no-release.json` and skips this section.
+Features collect on `dev`, `dev` goes to `main` and `main` mirrors the released state. Dependabot opens its version updates against `dev`, see `target-branch` in `.github/dependabot.yml`.
 
-1. Create `dev` from `main` and push it:
-   ```sh
-   git switch -c dev main
-   git push -u origin dev
-   ```
-2. In `.github/dependabot.yml` add `target-branch: dev` to both entries. Example for the first entry:
-   ```yaml
-   - package-ecosystem: uv
-     directory: /
-     target-branch: dev
-     schedule:
-       interval: weekly
-   ```
-
+<!-- profile:release:end -->
 ### Private repository
 
+<!-- profile:release:start -->
 A private repository needs two things that cost extra:
 
 | Needs | For | Without it |
@@ -117,6 +88,10 @@ To release without attestations, add the input `attest: false` to the job `build
     with:
       attest: false
 ```
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+A private repository needs GitHub Code Security for CodeQL and the dependency review, which costs extra. Without it `review / review` fails and CodeQL delivers no result. Neither blocks a merge under the profile `no-release`.
+<!-- profile:no-release:end -->
 
 ## How the infra works
 
@@ -133,11 +108,10 @@ To release without attestations, add the input `attest: false` to the job `build
 ## Project structure
 
 ```
-src/python_starter/  the package (renamed by init.py)
+src/{{MODULE}}/  the package
 tests/               pytest suite
 .github/workflows/   verify, CodeQL, dependency review, Scorecard, release, described in the README there
 SECURITY.md          security policy
-scripts/init.py      one-time template initializer (removed after first run)
 ```
 
 ## License

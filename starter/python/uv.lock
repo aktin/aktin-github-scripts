@@ -350,7 +350,7 @@ wheels = [
 ]
 
 [[package]]
-name = "python-starter"
+name = "{{PROJECT_NAME}}"
 version = "0.0.0"
 source = { editable = "." }
 
