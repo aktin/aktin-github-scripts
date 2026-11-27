@@ -1,10 +1,20 @@
 # CI/CD and repository rules
 
+<!-- profile:release:start -->
 What runs on GitHub for this repository and which rules protect `main` and release tags. The rules apply once they are set up as described under [Repository settings](../../README.md#repository-settings) in the root README, which also covers the git hooks that run on your machine.
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+What runs on GitHub for this repository and which rules protect `main`. The rules apply once they are set up as described under [Repository settings](../../README.md#repository-settings) in the root README, which also covers the git hooks that run on your machine.
+<!-- profile:no-release:end -->
 
 ## On a pull request
 
-These checks appear on a pull request into `main`, and into `dev` if the repository uses it.
+<!-- profile:release:start -->
+These checks appear on a pull request into `main` and into `dev`.
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+These checks appear on a pull request into `main`.
+<!-- profile:no-release:end -->
 
 | Check | Workflow | Required to merge |
 | --- | --- | --- |
@@ -26,7 +36,12 @@ These checks appear on a pull request into `main`, and into `dev` if the reposit
 
 The workflow files only hold the triggers. Their jobs live as reusable workflows in [aktin-github-scripts](https://github.com/aktin/aktin-github-scripts/tree/main/.github/workflows) and are called at `@main`. The actions they use are pinned to commit SHAs there.
 
+<!-- profile:release:start -->
 What each workflow does and when it runs. A pull request means one into `main` or `dev`. Schedules are in UTC and run on `main`:
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+What each workflow does and when it runs. A pull request means one into `main`. Schedules are in UTC and run on `main`:
+<!-- profile:no-release:end -->
 
 | Workflow | Pull request | Push to `main` | Schedule | Other | What happens |
 | --- | --- | --- | --- | --- | --- |
@@ -40,7 +55,12 @@ What each workflow does and when it runs. A pull request means one into `main` o
 
 In `verify.yml` and `scan-codeql.yml` a newer run for the same pull request or branch cancels the one that is still running.
 
-Dependabot is configured in `.github/dependabot.yml`. Once a week it opens one grouped pull request per ecosystem, one for the Python dependencies (`uv`) and one for the GitHub Actions referenced in the workflow files. These pull requests go to the default branch, or to the branch set as `target-branch` in that file. Dependabot alerts and security updates are switched on in the repository settings and report known vulnerabilities in dependencies that are already in use. Security updates always open their pull requests against `main`, also when the repository uses `dev`.
+<!-- profile:release:start -->
+Dependabot is configured in `.github/dependabot.yml`. Once a week it opens one grouped pull request per ecosystem, one for the Python dependencies (`uv`) and one for the GitHub Actions referenced in the workflow files. These pull requests go to `dev`, set as `target-branch` in that file. Dependabot alerts and security updates are switched on in the repository settings and report known vulnerabilities in dependencies that are already in use. Security updates always open their pull requests against `main`, not against `dev`.
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+Dependabot is configured in `.github/dependabot.yml`. Once a week it opens one grouped pull request per ecosystem, one for the Python dependencies (`uv`) and one for the GitHub Actions referenced in the workflow files. These pull requests go to `main`. Dependabot alerts and security updates are switched on in the repository settings and report known vulnerabilities in dependencies that are already in use. Security updates always open their pull requests against `main`.
+<!-- profile:no-release:end -->
 
 <!-- profile:release:start -->
 ## Gates on `main`

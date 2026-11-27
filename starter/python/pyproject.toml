@@ -19,7 +19,9 @@ dev = [
   "pytest>=9.1",
   "pytest-cov>=7.1",
   "lefthook>=2.1",
+  # profile:release:start
   "git-cliff>=2.13",
+  # profile:release:end
 ]
 
 [tool.ruff]

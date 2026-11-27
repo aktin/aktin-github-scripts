@@ -2,7 +2,11 @@ name: scan-dependencies
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches:
+      - main
+      # profile:release:start
+      - dev
+      # profile:release:end
 
 permissions:
   contents: read

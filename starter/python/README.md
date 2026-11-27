@@ -126,7 +126,9 @@ tests/               pytest suite
 <!-- profile:no-release:start -->
 .github/workflows/   verify, CodeQL, dependency review, Scorecard, described in the README there
 <!-- profile:no-release:end -->
+<!-- profile:release:start -->
 SECURITY.md          security policy
+<!-- profile:release:end -->
 ```
 
 ## License
