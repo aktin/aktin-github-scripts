@@ -13,7 +13,7 @@ The first stop when you set up a new AKTIN repository. Work through the numbered
 
 The git hooks are mandatory in every AKTIN repository. `new-repo.sh` installs them in the clone it creates. Everyone who clones the repository later installs them once, the command is in the README of the repository under "Getting started".
 
-Install these tools. All of them must be on your PATH, the environment variable that lists the folders in which your shell looks for commands:
+Install these tools. All of them must be on your PATH, the environment variable that lists the folders in which your shell looks for commands: `new-repo.sh` checks them before it creates anything and names the missing one.
 
 | Tool                                                | Needed for                                                                              |
 |-----------------------------------------------------|-----------------------------------------------------------------------------------------|
@@ -71,8 +71,11 @@ The script asks for:
 | GitHub description | Mandatory. One line, shown on the repository page and as the subtitle of the README                                |
 | Code owners      | Who must approve every pull request into `main`, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
 | Author           | Your name in the package metadata, for example `authors` in `pyproject.toml`. Your git `user.name` by default        |
+| Stack questions  | Asked after the summary, for example the Python version. Its minor version also becomes the lowest supported one     |
 
 The script then makes the first commit, pushes `main`, creates `dev` if the profile protects it and applies the profile. To try a stack or profile without GitHub, run `new-repo.sh --local`. It builds the same local repository, logs the GitHub steps as skipped and copies the profile it would apply to `repo-settings/` in the new folder. It prints one `ok` line per part of the profile. What a profile contains is described under [Repository Settings](../README.md#repository-settings).
+
+When a step fails, fix the cause and run the script again with the same repository name. It keeps your answers in `.<name>.new-repo` next to the new folder, skips the steps that are done and removes the file at the end.
 
 ### 4. Manual steps
 
@@ -99,6 +102,9 @@ A stack folder only holds what differs from `common/` and its parent stacks. The
 | Path                  | Meaning                                                                                       |
 |-----------------------|-----------------------------------------------------------------------------------------------|
 | `profile/<profile>/`  | Files only for that profile, for example `release.yml`. Not copied for other profiles        |
+| `requirements.sh`     | Checks the tools of the stack with `need <tool>...`, before anything is created              |
+| `version.sh`          | Asks for the language version and sets it in the new repository                              |
 | `setup.sh`            | Runs in the new repository after the copy, for example to lock dependencies and install hooks |
+| Hooks in general      | Sourced, so they can use `say`, `ask`, `need` and `fail` of `new-repo.sh`. Never copied      |
 | `{{NAME}}`            | Placeholder in file contents and paths, see `new-repo.sh` for the names                        |
 | `profile:<profile>:start` and `profile:<profile>:end` | Lines in any file that enclose text only for that profile        |
