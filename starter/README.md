@@ -68,7 +68,6 @@ The script asks for:
 | Repository name  | The `<name>` in the URL and the local folder. Also the project name and, for Python, the package name                |
 | Stack            | See section 2                                                                                                        |
 | Settings profile | With or without release cycle, see section 2                                                                         |
-| Visibility       | A private repository needs paid GitHub features, see "Private repository" in its README                             |
 | GitHub description | Mandatory. One line, shown on the repository page and as the subtitle of the README                                |
 | Code owners      | Who must approve every pull request into `main`, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
 | Author           | Your name in the package metadata, for example `authors` in `pyproject.toml`. Your git `user.name` by default        |

@@ -70,34 +70,6 @@ The code owners in `.github/CODEOWNERS` review every pull request into `main`.
 Features collect on `dev`, `dev` goes to `main` and `main` mirrors the released state. Dependabot opens its version updates against `dev`, see `target-branch` in `.github/dependabot.yml`.
 
 <!-- profile:release:end -->
-### Private repository
-
-<!-- profile:release:start -->
-A private repository needs two things that cost extra:
-
-| Needs | For | Without it |
-| --- | --- | --- |
-| GitHub Code Security | CodeQL and the dependency review | `review / review` fails and CodeQL delivers no result, so the ruleset `default` blocks every pull request |
-| GitHub Enterprise Cloud | The attestations in `release.yml` | The job `build` fails and no release is published |
-
-To release without attestations, add the input `attest: false` to the job `build` in `.github/workflows/release.yml`. The build then skips the SBOM and the attestations, and the release holds only the wheel and the sdist:
-
-```yaml
-  build:
-    needs: verify
-    permissions:
-      contents: read
-      id-token: write
-      attestations: write
-    uses: aktin/aktin-github-scripts/.github/workflows/build-python.yml@main
-    with:
-      attest: false
-```
-<!-- profile:release:end -->
-<!-- profile:no-release:start -->
-A private repository needs GitHub Code Security for CodeQL and the dependency review, which costs extra. Without it `review / review` fails and CodeQL delivers no result. Neither blocks a merge under the profile `no-release`.
-<!-- profile:no-release:end -->
-
 ## How the infra works
 
 | Component | What it does |

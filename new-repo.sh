@@ -147,8 +147,6 @@ dest="$PWD/$name"
 [ ! -e "$dest" ] || fail "$dest already exists"
 stack=${stacks[$(choose "Stack" "${stacks[@]}")]}
 profile=${profiles[$(choose "Settings profile" "${profile_labels[@]}")]}
-visibilities=(public private)
-visibility=${visibilities[$(choose "Visibility" "public" "private (needs paid GitHub features)")]}
 description=$(ask_required "GitHub description" "One line, shown on the repository page and in the README")
 read -ra others <<<"$(ask "Code owners besides @$me" "" "Must approve pull requests into main. Separate by spaces, for example @alice @aktin/devs. Empty for none")"
 codeowners="@$me"
@@ -157,7 +155,7 @@ author=$(ask "Author" "$(git config user.name || true)" "Your name in the packag
 
 say ""
 say "${bold}Summary${reset}"
-say "  Repository   github.com/$owner/$name ($visibility)"
+say "  Repository   github.com/$owner/$name (public)"
 say "  Local folder $dest"
 if $local_only; then say "  ${bold}Mode         --local, nothing is created on GitHub${reset}"; fi
 say "  Stack        $stack"
@@ -195,9 +193,9 @@ done_step "Signed commit on main"
 
 step "Creating github.com/$owner/$name"
 if $local_only; then
-  skipped "gh repo create $owner/$name --$visibility --push"
+  skipped "gh repo create $owner/$name --public --push"
 else
-  gh repo create "$owner/$name" "--$visibility" --description "$description" --source "$dest" --push
+  gh repo create "$owner/$name" --public --description "$description" --source "$dest" --push
 fi
 
 # Branches other than main that the profile protects must exist before its
