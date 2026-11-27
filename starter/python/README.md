@@ -51,7 +51,7 @@ The tag starts `release.yml`, see [Workflows](.github/workflows/README.md#workfl
 
 ## Repository settings
 
-The repository was created with `new-repo.sh` from [aktin-github-scripts](https://github.com/aktin/aktin-github-scripts), which also applied the settings profile `{{PROFILE}}.json`. To apply the profile again, run from the root of aktin-github-scripts:
+The repository was created with `new-repo.sh` from [aktin-github-scripts](https://github.com/aktin/aktin-github-scripts) for the settings profile `{{PROFILE}}.json`. When it was created on GitHub, the script applied the profile. To apply it again, run from the root of aktin-github-scripts:
 
 ```sh
 repo-settings/apply.sh {{REPO_SLUG}} repo-settings/{{PROFILE}}.json

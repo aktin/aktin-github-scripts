@@ -90,14 +90,17 @@ done
 mapfile -t stacks < <(find "$starters" -mindepth 1 -maxdepth 1 -type d ! -name common -printf '%f\n' | sort)
 mapfile -t profiles < <(find "$settings" -name '*.json' ! -name template.json -printf '%f\n' | sed 's/\.json$//' | sort)
 
+me=$(gh api user --jq .login)
+mode=$(choose "Create the repository" local remote)
 owner=$(ask "GitHub owner of the repository" aktin)
 name=$(ask "Repository name")
 [ -n "$name" ] || { echo "The repository name is required" >&2; exit 1; }
 stack=$(choose "Stack" "${stacks[@]}")
-profile=$(choose "Settings profile" "${profiles[@]}")
-visibility=$(choose "Visibility" public private)
+profile=$(choose "Settings profile, release when the repository publishes releases" "${profiles[@]}")
 description=$(ask "Description")
-codeowner=$(ask "Code owner (GitHub user or team)" akomii)
+read -ra others <<<"$(ask "Code owners besides you, space separated (user or org/team)")"
+codeowners="@$me"
+for other in "${others[@]}"; do codeowners+=" @${other#@}"; done
 author=$(ask "Author" "$(git config user.name || true)")
 
 dest="$PWD/$name"
@@ -105,7 +108,7 @@ dest="$PWD/$name"
 
 module=$(tr '[:upper:]' '[:lower:]' <<<"$name" | tr '.-' '__')
 export TPL_PROJECT_NAME="$name" TPL_REPO_SLUG="$owner/$name" TPL_DESCRIPTION="$description" \
-  TPL_OWNER="$codeowner" TPL_AUTHOR="$author" TPL_PROFILE="$profile" TPL_MODULE="$module"
+  TPL_OWNER="$me" TPL_CODEOWNERS="$codeowners" TPL_AUTHOR="$author" TPL_PROFILE="$profile" TPL_MODULE="$module"
 
 mkdir "$dest"
 mapfile -t stack_layers < <(layers "$stack")
@@ -119,6 +122,12 @@ done
 git -C "$dest" add -A
 git -C "$dest" commit -S -q -m "chore: create the repository from the $stack starter"
 
+if [ "$mode" = local ]; then
+  echo "Created $dest. It is not on GitHub."
+  exit 0
+fi
+
+visibility=$(choose "Visibility" public private)
 gh repo create "$owner/$name" "--$visibility" --description "$description" --source "$dest" --push
 
 # Branches other than main that the profile protects must exist before its
