@@ -1,0 +1,33 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    permissions:
+      contents: write
+    uses: aktin/aktin-github-scripts/.github/workflows/verify-java.yml@main
+    with:
+      java-version: "25"
+
+  build:
+    needs: verify
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: aktin/aktin-github-scripts/.github/workflows/build-java.yml@main
+    with:
+      java-version: "25"
+
+  publish:
+    needs: build
+    permissions:
+      contents: write
+    uses: aktin/aktin-github-scripts/.github/workflows/publish-release.yml@main
