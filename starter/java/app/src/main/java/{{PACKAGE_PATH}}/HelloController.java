@@ -1,4 +1,4 @@
-package org.aktin.{{MODULE}};
+package {{PACKAGE}};
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -99,7 +99,7 @@ Features collect on `dev`, `dev` goes to `main` and `main` mirrors the released 
 ## Project structure
 
 ```
-app/                   Spring Boot application module, package org.aktin.{{MODULE}}
+app/                   Spring Boot application module, package {{PACKAGE}}
 <!-- profile:release:start -->
 .github/workflows/     verify, CodeQL, dependency review, Scorecard, release, described in the README there
 <!-- profile:release:end -->

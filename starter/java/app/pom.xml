@@ -4,8 +4,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.aktin</groupId>
-    <artifactId>{{PROJECT_NAME}}</artifactId>
+    <groupId>{{GROUP_ID}}</groupId>
+    <artifactId>{{ARTIFACT_ID}}</artifactId>
     <version>${revision}</version>
   </parent>
 

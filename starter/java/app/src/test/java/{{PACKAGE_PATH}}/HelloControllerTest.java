@@ -1,4 +1,4 @@
-package org.aktin.{{MODULE}};
+package {{PACKAGE}};
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
