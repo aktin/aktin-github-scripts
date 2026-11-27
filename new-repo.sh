@@ -246,7 +246,7 @@ gh auth status >/dev/null 2>&1 || fail "gh is not logged in, run gh auth login"
 [ -n "$(git config --get user.signingkey)" ] || fail "No git signing key, set user.signingkey as described in starter/README.md section 1"
 
 mapfile -t stacks < <(find "$starters" -mindepth 1 -maxdepth 1 -type d ! -name common -printf '%f\n' | sort)
-mapfile -t profiles < <(find "$settings" -name '*.json' ! -name template.json -printf '%f\n' | sed 's/\.json$//' | sort)
+mapfile -t profiles < <(find "$settings" -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort)
 profile_labels=()
 for p in "${profiles[@]}"; do profile_labels+=("$(jq -r .description "$settings/$p.json")"); done
 
