@@ -1,0 +1,26 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches:
+      - main
+      # profile:release:start
+      - dev
+      # profile:release:end
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    permissions:
+      contents: write
+    uses: aktin/aktin-github-scripts/.github/workflows/verify-java.yml@main
+    with:
+      java-version: "25"
