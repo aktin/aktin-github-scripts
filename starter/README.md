@@ -19,7 +19,7 @@ Install these tools. All of them must be on your PATH, the environment variable 
 |-----------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [gh](https://cli.github.com)                        | Creating the repository and applying its settings                                       |
 | [jq](https://jqlang.org)                            | Applying the settings                                                                   |
-| The build tool of your stack                        | Locking the dependencies and installing the hooks, for Python [uv](https://docs.astral.sh/uv/), for Java a JDK and the [lefthook](https://lefthook.dev) binary |
+| The build tool of your stack                        | Locking the dependencies and installing the hooks, for Python [uv](https://docs.astral.sh/uv/), for Java a JDK and the [lefthook](https://lefthook.dev) binary, for web [bun](https://bun.sh) |
 | python3, gitleaks, actionlint, hadolint, shellcheck | The shared hooks, see [Git Hooks](../README.md#git-hooks). A missing tool fails the commit |
 
 Then do these two steps once per machine:
@@ -43,8 +43,7 @@ Then do these two steps once per machine:
 |----------|-----------------|-------------------------------------------------------------------------------------------|
 | `java`   | Java applications | Maven wrapper (build), Spring Boot (application), Spotless (formatter), Checkstyle (linter), JUnit 5 and JaCoCo (tests and coverage) |
 | `python` | Python packages | uv (package and environment manager), ruff (linter and formatter), mypy (type checker), pytest (tests) |
-
-Web is still the template repository [web-starter](https://github.com/akomii/web-starter). Create it with `gh repo create --template` and apply the profile with `repo-settings/apply.sh` as described in [Repository Settings](../README.md#repository-settings).
+| `web`    | Web apps        | bun (runtime, package manager and workspaces), Vue 3 with Vite, ESLint and Prettier, Vitest (tests) |
 
 | Profile      | Use it when                          | Branches                                                                    |
 |--------------|--------------------------------------|-----------------------------------------------------------------------------|
