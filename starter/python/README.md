@@ -12,7 +12,12 @@
 
 ## Stack
 
+<!-- profile:release:start -->
 uv-managed Python package (src layout), ruff for linting and formatting, mypy strict, pytest with coverage gate, lefthook with shared hooks from aktin-github-scripts, tag-driven releases via git-cliff, and a hardened GitHub Actions pipeline (CI, CodeQL, Scorecard, dependency review, SBOM, build attestations).
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+uv-managed Python package (src layout), ruff for linting and formatting, mypy strict, pytest with coverage gate, lefthook with shared hooks from aktin-github-scripts, and a hardened GitHub Actions pipeline (CI, CodeQL, Scorecard, dependency review).
+<!-- profile:no-release:end -->
 
 ## Getting started
 
@@ -37,8 +42,8 @@ Commits must follow [Conventional Commits](https://www.conventionalcommits.org),
 ```
 
 Allowed types are `feat fix docs style refactor perf test chore`, the subject starts lowercase and has no trailing period, every line of the message stays at most 100 characters.
-
 <!-- profile:release:start -->
+
 To cut a release, check out the commit on `main` that you want to release, tag it `vX.Y.Z` and push the tag. Example for version 1.2.3:
 
 ```sh
@@ -103,14 +108,24 @@ A private repository needs GitHub Code Security for CodeQL and the dependency re
 | pytest + coverage | Unit tests with an 80% line gate (`fail_under`) |
 | Pinned Python | Interpreter version fixed in `.python-version`, floor in `requires-python` |
 | lefthook | All hooks come from [aktin-github-scripts](https://github.com/aktin/aktin-github-scripts#git-hooks), see `lefthook.yml`. pre-commit formats and lints staged Python files, scans for secrets with gitleaks, lints staged workflows, Dockerfiles and shell scripts and rejects data files and large files, commit-msg enforces Conventional Commits and rejects oversized commits, pre-push runs `uv run mypy`, `uv run pytest` and `uv build` |
+<!-- profile:release:start -->
 | GitHub workflows and rules | Checks on pull requests, CodeQL, dependency review, Scorecard, releases, Dependabot and the rulesets on `main` and release tags. Details in [.github/workflows/README.md](.github/workflows/README.md) |
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+| GitHub workflows and rules | Checks on pull requests, CodeQL, dependency review, Scorecard, Dependabot and the ruleset on `main`. Details in [.github/workflows/README.md](.github/workflows/README.md) |
+<!-- profile:no-release:end -->
 
 ## Project structure
 
 ```
 src/{{MODULE}}/  the package
 tests/               pytest suite
+<!-- profile:release:start -->
 .github/workflows/   verify, CodeQL, dependency review, Scorecard, release, described in the README there
+<!-- profile:release:end -->
+<!-- profile:no-release:start -->
+.github/workflows/   verify, CodeQL, dependency review, Scorecard, described in the README there
+<!-- profile:no-release:end -->
 SECURITY.md          security policy
 ```
 
