@@ -152,6 +152,8 @@ A profile holds the complete settings of a repository: merge options, who may op
 
 The required checks are the jobs of the `verify-` workflows and of `scan-dependencies`.
 
+The key `description` is not a setting. `new-repo.sh` shows it when you pick a profile, so every profile except `template.json` needs one.
+
 #### Usage:
 
 Run the script with the repository and a profile. It needs `jq` and `gh`, logged in with admin rights on the repository. A repository created from a template does not inherit the settings of the template, so apply a profile to every new repository.

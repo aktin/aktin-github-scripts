@@ -23,12 +23,19 @@ ask() {
   echo "${answer:-${2:-}}"
 }
 
-# Lets the user pick one of the options and prints the choice.
+# Asks until the answer is not empty and prints it.
+ask_required() {
+  local answer=""
+  while [ -z "$answer" ]; do read -rp "$1: " answer; done
+  echo "$answer"
+}
+
+# Lets the user pick one of the options and prints its index, counted from 0.
 choose() {
   local PS3="$1: " choice
   shift
   select choice in "$@"; do
-    [ -n "$choice" ] && { echo "$choice"; return; }
+    [ -n "$choice" ] && { echo $((REPLY - 1)); return; }
   done
 }
 
@@ -89,19 +96,22 @@ done
 
 mapfile -t stacks < <(find "$starters" -mindepth 1 -maxdepth 1 -type d ! -name common -printf '%f\n' | sort)
 mapfile -t profiles < <(find "$settings" -name '*.json' ! -name template.json -printf '%f\n' | sed 's/\.json$//' | sort)
+profile_labels=()
+for p in "${profiles[@]}"; do profile_labels+=("$(jq -r .description "$settings/$p.json")"); done
 
 me=$(gh api user --jq .login)
-mode=$(choose "Create the repository" local remote)
-owner=$(ask "GitHub owner of the repository" aktin)
-name=$(ask "Repository name")
-[ -n "$name" ] || { echo "The repository name is required" >&2; exit 1; }
-stack=$(choose "Stack" "${stacks[@]}")
-profile=$(choose "Settings profile, release when the repository publishes releases" "${profiles[@]}")
-description=$(ask "Description")
-read -ra others <<<"$(ask "Code owners besides you, space separated (user or org/team)")"
+echo "The repository is created on GitHub at github.com/<account>/<name> and cloned into $PWD/<name>."
+owner=$(ask "GitHub account, an organization or your user" aktin)
+name=$(ask_required "Repository name, also the project and package name")
+stack=${stacks[$(choose "Stack" "${stacks[@]}")]}
+profile=${profiles[$(choose "Settings profile" "${profile_labels[@]}")]}
+visibilities=(public private)
+visibility=${visibilities[$(choose "Visibility. Private needs paid GitHub features" "${visibilities[@]}")]}
+description=$(ask_required "GitHub description, one line shown on the repository page and in the README")
+read -ra others <<<"$(ask "Code owners besides @$me, who must approve pull requests into main. Separate by spaces, for example @alice @aktin/devs. Empty for none")"
 codeowners="@$me"
 for other in "${others[@]}"; do codeowners+=" @${other#@}"; done
-author=$(ask "Author" "$(git config user.name || true)")
+author=$(ask "Author name in the package metadata, for example pyproject.toml" "$(git config user.name || true)")
 
 dest="$PWD/$name"
 [ ! -e "$dest" ] || { echo "$dest already exists" >&2; exit 1; }
@@ -120,14 +130,9 @@ for layer in "${stack_layers[@]}"; do
   if [ -f "$starters/$layer/setup.sh" ]; then (cd "$dest" && bash "$starters/$layer/setup.sh"); fi
 done
 git -C "$dest" add -A
-git -C "$dest" commit -S -q -m "chore: create the repository from the $stack starter"
+# The first commit holds the whole starter, so it skips the commit size hook.
+git -C "$dest" commit -S -q -m "chore: create the repository from the $stack starter [skip-size]"
 
-if [ "$mode" = local ]; then
-  echo "Created $dest. It is not on GitHub."
-  exit 0
-fi
-
-visibility=$(choose "Visibility" public private)
 gh repo create "$owner/$name" "--$visibility" --description "$description" --source "$dest" --push
 
 # Branches other than main that the profile protects must exist before its

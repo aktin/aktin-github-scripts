@@ -47,8 +47,8 @@ Java and web are still the template repositories [java-starter](https://github.c
 
 | Profile      | Use it when                          | Branches                                                                    |
 |--------------|--------------------------------------|-----------------------------------------------------------------------------|
-| `no-release` | The repository publishes no releases | Feature branches go to `main`                                               |
-| `release`    | The repository publishes releases    | Feature branches go to `dev`, `dev` goes to `main`, a release is a tag `v*` |
+| `no-release` | Without release cycle: prototypes, simple or internal tools, where a failure has little impact | Feature branches go to `main`                                               |
+| `release`    | With release cycle: apps that are shipped or run in production, where a failure has real impact | Feature branches go to `dev`, `dev` goes to `main`, a release is a tag `v*` |
 
 ### 3. Create the repository
 
@@ -62,18 +62,18 @@ cd ~/projects
 
 The script asks for:
 
-| Question             | Meaning                                                                                                  |
-|----------------------|----------------------------------------------------------------------------------------------------------|
-| local or remote      | `local` stops after the first commit. `remote` also creates the repository on GitHub and applies the profile |
-| GitHub owner         | User or organization the repository belongs to, `aktin` by default                                      |
-| Repository name      | Also the project name and, for Python, the package name                                                  |
-| Stack and profile    | See section 2                                                                                            |
-| Description          | One line, shown on GitHub and in the README                                                              |
-| Code owners          | You are always one. Add further users or `org/team`, separated by spaces                                |
-| Author               | Your git `user.name` by default                                                                          |
-| Visibility           | Only for `remote`. A private repository needs paid GitHub features, see "Private repository" in its README |
+| Question         | Meaning                                                                                                              |
+|------------------|----------------------------------------------------------------------------------------------------------------------|
+| GitHub account   | Organization or user the repository is created under, the `<account>` in `github.com/<account>/<name>`. `aktin` by default |
+| Repository name  | The `<name>` in the URL and the local folder. Also the project name and, for Python, the package name                |
+| Stack            | See section 2                                                                                                        |
+| Settings profile | With or without release cycle, see section 2                                                                         |
+| Visibility       | A private repository needs paid GitHub features, see "Private repository" in its README                             |
+| GitHub description | Mandatory. One line, shown on the repository page and as the subtitle of the README                                |
+| Code owners      | Who must approve every pull request into `main`, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
+| Author           | Your name in the package metadata, for example `authors` in `pyproject.toml`. Your git `user.name` by default        |
 
-With `remote` the script then pushes `main`, creates `dev` if the profile protects it and applies the profile. It prints one `ok` line per part of the profile. What a profile contains is described under [Repository Settings](../README.md#repository-settings).
+The script then makes the first commit, pushes `main`, creates `dev` if the profile protects it and applies the profile. It prints one `ok` line per part of the profile. What a profile contains is described under [Repository Settings](../README.md#repository-settings).
 
 ### 4. Manual steps
 

@@ -1,4 +1,5 @@
 {
+  "description": "With release cycle (apps that are shipped or run in production, where a failure has real impact)",
   "repository": {
     "is_template": false,
     "has_issues": true,
