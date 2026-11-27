@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "{{PROJECT_NAME}}",
+      "name": "{{PACKAGE_NAME}}",
       "devDependencies": {
         "@vue/eslint-config-typescript": "^14.9.0",
         "eslint": "^10.5.0",

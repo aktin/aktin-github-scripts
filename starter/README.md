@@ -71,7 +71,7 @@ The script asks for:
 | GitHub description | Mandatory. One line, shown on the repository page and as the subtitle of the README                                |
 | Code owners      | Who must approve every pull request into `main`, written to `.github/CODEOWNERS`. You are always one. Add further users or teams with `@`, separated by spaces, for example `@alice @aktin/devs` |
 | Author           | Your name in the package metadata, for example `authors` in `pyproject.toml`. Your git `user.name` by default        |
-| Stack questions  | Asked by the stack. For Java the Maven groupId and artifactId before the summary, which also give the Java package. The language version after the summary, its minor or feature release also becomes the lowest supported one |
+| Stack questions  | Asked by the stack. For Java the Maven groupId and artifactId before the summary, which also give the Java package. For web the package name. The language version after the summary, its minor or feature release also becomes the lowest supported one |
 
 The script then makes the first commit, pushes `main`, creates `dev` if the profile protects it and applies the profile. To try a stack or profile without GitHub, run `new-repo.sh --local`. It builds the same local repository, logs the GitHub steps as skipped and copies the profile it would apply to `repo-settings/` in the new folder. It prints one `ok` line per part of the profile. What a profile contains is described under [Repository Settings](../README.md#repository-settings).
 
